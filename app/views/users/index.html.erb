@@ -1,0 +1,52 @@
+<% content_for :title, "Usuarios · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Usuarios</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :usuarios, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="insumos-layout">
+    <section class="insumos-list">
+      <div class="corte-section-head">
+        <h2>Equipo</h2>
+        <span><%= @users.size %> usuarios</span>
+      </div>
+
+      <% @users.each do |u| %>
+        <div class="usuario-row">
+          <div class="usuario-name">
+            <%= u.name %>
+            <% if u == current_user %>
+              <small style="color: var(--ink-mute); font-weight: normal; font-size: 11px;">(tú)</small>
+            <% end %>
+          </div>
+          <span class="usuario-role usuario-role--<%= u.role %>"><%= u.role %></span>
+          <%= link_to "editar", edit_usuario_path(u), class: "insumo-btn" %>
+          <% if u != current_user %>
+            <%= button_to "eliminar", usuario_path(u), method: :delete,
+                  class: "insumo-btn insumo-btn--danger",
+                  data: { turbo_confirm: "¿Eliminar a #{u.name}?" } %>
+          <% else %>
+            <span></span>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+
+    <aside class="insumos-form">
+      <div class="corte-section-head">
+        <h2>Nuevo usuario</h2>
+      </div>
+      <%= render "form", user: @new_user, submit_label: "Crear usuario", url: usuarios_path %>
+    </aside>
+  </div>
+</div>

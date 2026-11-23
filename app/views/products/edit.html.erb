@@ -1,0 +1,21 @@
+<% content_for :title, "Editar #{@product.name} · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Editar</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+    <%= render "shared/nav", active: :stock, zone: :backoffice %>
+  </header>
+
+  <% if flash[:alert] %>
+    <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
+  <% end %>
+
+  <section class="stock-form-section stock-form-section--solo">
+    <h2 class="pos-section-title"><%= @product.name %></h2>
+    <%= render "form", product: @product %>
+  </section>
+</div>

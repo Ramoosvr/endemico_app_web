@@ -1,0 +1,57 @@
+<% content_for :title, "Backoffice · Endémico" %>
+
+<%
+  cards = [
+    { label: "Productos",
+      path:  stock_path,
+      desc:  "#{@products_count} productos · precios, costos, recetas y opciones" },
+    { label: "Insumos",
+      path:  insumos_path,
+      desc:  "#{@ingredients_count} insumos · stock, mínimos, precio por unidad" +
+             (@alerts.positive? ? " · ⚠ #{@alerts} debajo del mínimo" : "") },
+    { label: "Análisis",
+      path:  analisis_path,
+      desc:  "Consumo por día · días restantes · orden de compra sugerida" },
+    { label: "Agente IA",
+      path:  agente_path,
+      desc:  @ai_enabled ? "Chat con Claude sobre ventas, stock y compras" : "Desactivado · configura en Ajustes" },
+    { label: "Ajustes",
+      path:  ajustes_path,
+      desc:  "Días de cobertura · proveedor · WhatsApp · API key del agente" },
+    { label: "Usuarios",
+      path:  usuarios_path,
+      desc:  "#{@users_count} usuarios · admin y baristas" }
+  ]
+%>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Backoffice</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :backoffice, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="backoffice-hero">
+    <h2>Panel de administración</h2>
+    <p>Todo lo que puede modificar <strong><%= current_user.name %></strong>. Los baristas solo ven el frontoffice.</p>
+  </div>
+
+  <div class="backoffice-grid">
+    <% cards.each do |card| %>
+      <%= link_to card[:path], class: "backoffice-card" do %>
+        <div class="backoffice-card-top">
+          <h3><%= card[:label] %></h3>
+          <span class="backoffice-card-arrow">→</span>
+        </div>
+        <p><%= card[:desc] %></p>
+      <% end %>
+    <% end %>
+  </div>
+</div>

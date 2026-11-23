@@ -1,0 +1,103 @@
+<% ingredients = product.product_ingredients.to_a %>
+<% defaults = ingredients.select { |pi| pi.default_included } %>
+<% extras   = ingredients.reject { |pi| pi.default_included } %>
+<% options  = product.option_groups.to_a %>
+
+<article class="scard scard--<%= product.kind %>">
+  <%= link_to product_path(product), class: "scard-face", aria: { label: "Configurar #{product.name}" } do %>
+    <div class="scard-thumb">
+      <% if product.photo.attached? %>
+        <%= image_tag product.photo, class: "scard-thumb-img" %>
+      <% else %>
+        <div class="scard-thumb-empty"><%= product.name.first.upcase %></div>
+      <% end %>
+    </div>
+
+    <div class="scard-top">
+      <div class="scard-headline">
+        <h3 class="scard-name"><%= product.name %></h3>
+        <span class="scard-kind scard-kind--<%= product.kind %>"><%= product.kind %></span>
+      </div>
+      <div class="scard-price">
+        <span class="scard-price-main">$<%= format("%.2f", product.price) %></span>
+        <span class="scard-price-cost">costo $<%= format("%.2f", product.cost) %></span>
+      </div>
+    </div>
+  <% end %>
+
+  <% if defaults.any? || extras.any? || options.any? %>
+    <div class="scard-chips">
+      <% if defaults.any? %>
+        <div class="scard-chipgroup">
+          <span class="scard-chiplabel">incluye</span>
+          <ul class="scard-chiplist">
+            <% defaults.first(8).each do |pi| %>
+              <li class="pchip pchip--default"><%= pi.ingredient.name %></li>
+            <% end %>
+            <% if defaults.size > 8 %>
+              <li class="pchip pchip--more">+<%= defaults.size - 8 %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if extras.any? %>
+        <div class="scard-chipgroup">
+          <span class="scard-chiplabel">extras</span>
+          <ul class="scard-chiplist">
+            <% extras.first(6).each do |pi| %>
+              <li class="pchip pchip--extra">
+                <span><%= pi.ingredient.name %></span>
+                <% if pi.extra_price.to_f > 0 %>
+                  <em>+$<%= format("%.0f", pi.extra_price) %></em>
+                <% end %>
+              </li>
+            <% end %>
+            <% if extras.size > 6 %>
+              <li class="pchip pchip--more">+<%= extras.size - 6 %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% options.each do |og| %>
+        <div class="scard-chipgroup">
+          <span class="scard-chiplabel"><%= og.name.downcase %></span>
+          <ul class="scard-chiplist">
+            <% og.option_choices.to_a.first(5).each do |oc| %>
+              <li class="pchip pchip--option <%= "pchip--option-default" if oc.default_selected %>">
+                <span><%= oc.name %></span>
+                <% if oc.extra_price.to_f > 0 %>
+                  <em>+$<%= format("%.0f", oc.extra_price) %></em>
+                <% end %>
+              </li>
+            <% end %>
+            <% if og.option_choices.size > 5 %>
+              <li class="pchip pchip--more">+<%= og.option_choices.size - 5 %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="scard-nochips">
+      <% if product.food? %>
+        <span>Sin ingredientes aún.</span>
+      <% else %>
+        <span>Sin opciones aún.</span>
+      <% end %>
+      <%= link_to "Agregar →", product_path(product), class: "scard-nochips-cta" %>
+    </div>
+  <% end %>
+
+  <footer class="scard-foot">
+    <div class="scard-stock">
+      <span class="scard-stock-label">stock</span>
+      <strong class="scard-stock-num <%= 'scard-stock-num--low' if product.stock <= 3 %>"><%= product.stock %></strong>
+    </div>
+    <div class="scard-actions">
+      <%= link_to "Configurar", product_path(product), class: "scard-cfg" %>
+      <%= button_to "Eliminar", product_path(product), method: :delete, class: "scard-del", form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } } %>
+    </div>
+  </footer>
+</article>

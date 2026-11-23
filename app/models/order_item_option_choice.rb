@@ -1,0 +1,4 @@
+class OrderItemOptionChoice < ApplicationRecord
+  belongs_to :order_item
+  belongs_to :option_choice
+end

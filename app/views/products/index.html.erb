@@ -1,0 +1,55 @@
+<% content_for :title, "Stock · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Stock</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :stock, zone: :frontoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="stock">
+    <aside class="stock-create">
+      <div class="stock-create-head">
+        <h2 class="stock-create-title">Nuevo producto</h2>
+        <p class="stock-create-hint">Agrégalo primero. Después le pones ingredientes u opciones.</p>
+      </div>
+      <%= render "form", product: @product %>
+    </aside>
+
+    <section class="stock-main">
+      <div class="stock-main-head">
+        <h2 class="stock-main-title">Inventario</h2>
+        <div class="stock-main-meta">
+          <span><strong><%= @products.size %></strong> productos</span>
+          <span class="stock-main-sep">·</span>
+          <span><strong><%= @products.count { |p| p.food? } %></strong> comida</span>
+          <span class="stock-main-sep">·</span>
+          <span><strong><%= @products.count { |p| p.drink? } %></strong> bebida</span>
+          <span class="stock-main-sep">·</span>
+          <span><strong><%= @products.count { |p| p.dessert? } %></strong> postre</span>
+        </div>
+      </div>
+
+      <% if @products.any? %>
+        <div class="stock-grid">
+          <% @products.each do |p| %>
+            <%= render "stock_card", product: p %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="stock-empty-rich">
+          <div class="stock-empty-mark">·</div>
+          <h3>Aún no hay productos</h3>
+          <p>Crea el primero con el formulario de la izquierda para que aparezca aquí.</p>
+        </div>
+      <% end %>
+    </section>
+  </div>
+</div>

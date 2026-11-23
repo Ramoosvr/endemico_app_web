@@ -1,0 +1,63 @@
+<aside class="cart">
+  <header class="cart-head">
+    <h2 class="cart-title">Pedido</h2>
+    <span class="cart-count"><%= items.sum(&:quantity) %> ítems</span>
+  </header>
+
+  <% if items.any? %>
+    <ul class="cart-items">
+      <% items.each do |item| %>
+        <li class="cart-item">
+          <div class="cart-item-main">
+            <div class="cart-item-head">
+              <strong class="cart-item-name"><%= item.quantity %>× <%= item.product.name %></strong>
+              <span class="cart-item-price">$<%= format("%.2f", item.line_total) %></span>
+            </div>
+            <% mods = item.modifier_lines %>
+            <% if mods.any? %>
+              <ul class="cart-item-mods">
+                <% mods.each do |m| %>
+                  <li><%= m %></li>
+                <% end %>
+              </ul>
+            <% end %>
+            <% if item.notes.present? %>
+              <p class="cart-item-note">📝 <%= item.notes %></p>
+            <% end %>
+          </div>
+          <%= button_to "×", item_cart_path(item), method: :delete, class: "cart-item-del", form: { class: "cart-item-del-form" } %>
+        </li>
+      <% end %>
+    </ul>
+
+    <footer class="cart-foot">
+      <div class="cart-total">
+        <span>Total</span>
+        <strong>$<%= format("%.2f", order.total) %></strong>
+      </div>
+      <%
+        clip_on = Setting.get(:clip_enabled)
+        clip_path = clip_on ? clip_payment_path : checkout_cart_path(payment_method: "tarjeta")
+        clip_confirm = clip_on ? "¿Mandar $#{format('%.2f', order.total)} a la terminal?" : "¿Cobrar con tarjeta $#{format('%.2f', order.total)}?"
+      %>
+      <div class="cart-pay">
+        <span class="cart-pay-label">Cobrar con</span>
+        <div class="cart-pay-buttons">
+          <%= button_to "💵 Efectivo", checkout_cart_path(payment_method: "efectivo"),
+                method: :post, class: "cart-pay-btn cart-pay-btn--cash",
+                form: { data: { turbo_confirm: "¿Cobrar en efectivo $#{format('%.2f', order.total)}?" } } %>
+          <%= button_to "💳 Tarjeta#{clip_on ? ' (Clip)' : ''}", clip_path,
+                method: :post, class: "cart-pay-btn cart-pay-btn--card",
+                form: { data: { turbo_confirm: clip_confirm } } %>
+          <%= button_to "📱 Transferencia", checkout_cart_path(payment_method: "transferencia"),
+                method: :post, class: "cart-pay-btn cart-pay-btn--transfer",
+                form: { data: { turbo_confirm: "¿Cobrar por transferencia $#{format('%.2f', order.total)}?" } } %>
+        </div>
+      </div>
+    </footer>
+  <% else %>
+    <div class="cart-empty">
+      <p>Agrega productos para comenzar un pedido.</p>
+    </div>
+  <% end %>
+</aside>

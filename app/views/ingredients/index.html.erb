@@ -1,0 +1,64 @@
+<% content_for :title, "Insumos · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Insumos</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :insumos, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="insumos-layout">
+    <section class="insumos-list">
+      <div class="corte-section-head">
+        <h2>Catálogo</h2>
+        <span><%= @ingredients.size %> insumos</span>
+      </div>
+
+      <% if @ingredients.empty? %>
+        <p class="pos-empty">Sin insumos. Crea uno en el panel de la derecha.</p>
+      <% else %>
+        <ul class="insumo-grid">
+          <% @ingredients.each do |ing| %>
+            <li class="insumo-card <%= 'insumo-card--low' if ing.below_min? %>">
+              <header class="insumo-head">
+                <strong><%= ing.name %></strong>
+                <span class="insumo-unit"><%= ing.unit %></span>
+              </header>
+              <dl class="insumo-meta">
+                <div><dt>stock</dt><dd><%= ing.stock.to_f %> <%= ing.unit %></dd></div>
+                <div><dt>mínimo</dt><dd><%= ing.min_stock.to_f %> <%= ing.unit %></dd></div>
+                <div><dt>precio</dt><dd>$<%= format("%.2f", ing.cost_per_unit) %>/<%= ing.unit %></dd></div>
+                <% if ing.supplier.present? %>
+                  <div><dt>proveedor</dt><dd><%= ing.supplier %></dd></div>
+                <% end %>
+              </dl>
+              <% if ing.below_min? %>
+                <div class="insumo-alert">⚠ Debajo del mínimo</div>
+              <% end %>
+              <footer class="insumo-actions">
+                <%= link_to "editar", edit_ingredient_path(ing), class: "insumo-btn" %>
+                <%= button_to "eliminar", ingredient_path(ing), method: :delete,
+                      class: "insumo-btn insumo-btn--danger",
+                      data: { turbo_confirm: "¿Eliminar #{ing.name}? Se borra de todas las recetas." } %>
+              </footer>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </section>
+
+    <aside class="insumos-form">
+      <div class="corte-section-head">
+        <h2>Nuevo insumo</h2>
+      </div>
+      <%= render "form", ingredient: @new_ingredient, submit_label: "Crear insumo", url: ingredients_path %>
+    </aside>
+  </div>
+</div>

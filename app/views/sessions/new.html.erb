@@ -1,0 +1,40 @@
+<% content_for :title, "Ingresar · Endémico" %>
+
+<div class="auth-page">
+  <div class="auth-steam" aria-hidden="true"></div>
+
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-mark"><%= render "shared/endemico_mark" %></div>
+      <h2 class="auth-wordmark">Endémico</h2>
+      <p class="auth-tagline">Coffee &amp; Social</p>
+    </div>
+
+    <div class="auth-divider"><span>·</span></div>
+
+    <h1 class="auth-title">Bienvenido de vuelta</h1>
+    <p class="auth-subtitle">Prepara tu café, abramos el día.</p>
+
+    <% if flash[:alert] %>
+      <div class="auth-alert"><%= flash[:alert] %></div>
+    <% end %>
+
+    <%= form_with url: login_path, method: :post, local: true, class: "auth-form" do |f| %>
+      <label class="auth-field">
+        <span>Nombre</span>
+        <%= f.text_field :name, autocomplete: "username", autofocus: true, required: true, placeholder: "tu nombre" %>
+      </label>
+
+      <label class="auth-field">
+        <span>Contraseña</span>
+        <%= f.password_field :password, autocomplete: "current-password", required: true, placeholder: "••••••••" %>
+      </label>
+
+      <%= f.submit "Entrar", class: "auth-button" %>
+    <% end %>
+
+    <p class="auth-footer">
+      ¿No tienes cuenta? Pídele a un administrador que te dé acceso.
+    </p>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<% content_for :title, "#{@product.name} · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title"><%= @product.name %></h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :stock, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <nav class="pshow-crumbs" aria-label="Breadcrumb">
+    <%= link_to "Stock", stock_path %>
+    <span>›</span>
+    <span class="pshow-crumbs-cur"><%= @product.name %></span>
+  </nav>
+
+  <div class="pshow">
+    <aside class="pshow-summary">
+      <div class="pshow-thumb">
+        <% if @product.photo.attached? %>
+          <%= image_tag @product.photo, class: "pshow-thumb-img" %>
+        <% else %>
+          <div class="pshow-thumb-empty"><%= @product.name.first.upcase %></div>
+        <% end %>
+      </div>
+
+      <div class="pshow-head">
+        <h2 class="pshow-name"><%= @product.name %></h2>
+        <span class="scard-kind scard-kind--<%= @product.kind %>"><%= @product.kind %></span>
+      </div>
+
+      <dl class="pshow-stats">
+        <div><dt>Venta</dt><dd>$<%= format("%.2f", @product.price) %></dd></div>
+        <div><dt>Costo</dt><dd>$<%= format("%.2f", @product.cost) %></dd></div>
+        <div><dt>Margen</dt><dd class="pshow-margin">$<%= format("%.2f", @product.margin) %></dd></div>
+        <div><dt>Stock</dt><dd class="<%= 'pshow-low' if @product.stock <= 3 %>"><%= @product.stock %></dd></div>
+      </dl>
+
+      <%= link_to "Editar datos básicos", edit_product_path(@product), class: "pshow-edit" %>
+    </aside>
+
+    <section class="pshow-main">
+      <% if @product.food? %>
+        <%= render "ingredients_section", product: @product, catalog: @ingredients_catalog %>
+      <% end %>
+
+      <% if @product.drink? %>
+        <%= render "options_section", product: @product, new_option_group: @new_option_group %>
+      <% end %>
+    </section>
+  </div>
+</div>

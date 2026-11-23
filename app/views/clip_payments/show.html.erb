@@ -1,0 +1,81 @@
+<% content_for :title, "Cobro con tarjeta · Endémico" %>
+
+<%
+  status_label = {
+    "pending"   => "Esperando pago",
+    "approved"  => "Pago aprobado",
+    "declined"  => "Pago rechazado",
+    "cancelled" => "Cancelado",
+    "error"     => "Error"
+  }
+  is_final = ClipPaymentsController::FINAL_STATES.include?(@status)
+%>
+
+<% unless is_final %>
+  <meta http-equiv="refresh" content="2; url=<%= clip_payment_path %>">
+<% end %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Cobro con tarjeta</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :main, zone: :frontoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="clip-wait clip-wait--<%= @status %>">
+    <div class="clip-wait-amount">
+      <span>Monto a cobrar</span>
+      <strong>$<%= format("%.2f", @order.total) %></strong>
+    </div>
+
+    <div class="clip-wait-status">
+      <% case @status %>
+      <% when "pending" %>
+        <div class="clip-spinner"></div>
+        <h2>Esperando pago en la terminal</h2>
+        <p>El cliente debe acercar o insertar la tarjeta en la terminal Clip.</p>
+      <% when "approved" %>
+        <div class="clip-check">✓</div>
+        <h2>Pago aprobado</h2>
+        <p>El pedido se cerró automáticamente.</p>
+      <% when "declined" %>
+        <div class="clip-cross">✗</div>
+        <h2>Pago rechazado</h2>
+        <p>Intenta de nuevo o cobra en efectivo.</p>
+      <% when "cancelled" %>
+        <div class="clip-cross">⊘</div>
+        <h2>Cobro cancelado</h2>
+      <% when "error" %>
+        <div class="clip-cross">!</div>
+        <h2>Error con la terminal</h2>
+      <% else %>
+        <div class="clip-spinner"></div>
+        <h2><%= status_label[@status] || @status %></h2>
+      <% end %>
+    </div>
+
+    <div class="clip-wait-ref">
+      <small>Referencia: <%= @order.clip_request_id %></small>
+    </div>
+
+    <div class="clip-wait-actions">
+      <% if @status == "pending" %>
+        <%= button_to "Cancelar cobro", clip_payment_path, method: :delete,
+              class: "cart-pay-btn cart-pay-btn--lg",
+              style: "background: var(--ink-mute);",
+              data: { turbo_confirm: "¿Cancelar el cobro con tarjeta?" } %>
+      <% elsif @status == "approved" %>
+        <%= link_to "Volver al POS", main_path, class: "cart-pay-btn cart-pay-btn--cash cart-pay-btn--lg", style: "text-decoration:none; display:inline-block;" %>
+      <% else %>
+        <%= link_to "Volver al POS", main_path, class: "cart-pay-btn cart-pay-btn--card cart-pay-btn--lg", style: "text-decoration:none; display:inline-block;" %>
+      <% end %>
+    </div>
+  </div>
+</div>

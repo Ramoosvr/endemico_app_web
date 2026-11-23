@@ -1,0 +1,83 @@
+<% content_for :title, "Endémico POS" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <h1 class="pos-brand-title">Endemico</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :main, zone: :frontoffice %>
+  </header>
+
+  <% if flash[:notice] %>
+    <div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
+  <% end %>
+
+  <% if admin? %>
+    <%= link_to backoffice_path, class: "pos-main-bo-cta" do %>
+      ⚙ Ir al backoffice
+    <% end %>
+  <% end %>
+
+  <div class="pos-columns">
+    <section class="pos-section">
+      <h2 class="pos-section-title">Bebidas</h2>
+      <% if @bebidas.any? %>
+        <div class="pos-grid">
+          <% @bebidas.each do |p| %>
+            <%= render "shared/product_card_db", product: p %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="pos-empty">
+          <p>Sin bebidas todavía.</p>
+          <%= link_to "Agregar la primera →", stock_path, class: "pos-empty-cta" %>
+        </div>
+      <% end %>
+    </section>
+
+    <section class="pos-section">
+      <h2 class="pos-section-title">Comida</h2>
+      <% if @comida.any? %>
+        <div class="pos-grid">
+          <% @comida.each do |p| %>
+            <%= render "shared/product_card_db", product: p %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="pos-empty">
+          <p>Sin comida todavía.</p>
+          <%= link_to "Agregar la primera →", stock_path, class: "pos-empty-cta" %>
+        </div>
+      <% end %>
+    </section>
+
+    <section class="pos-section">
+      <h2 class="pos-section-title">Postres</h2>
+      <% if @postres.any? %>
+        <div class="pos-grid">
+          <% @postres.each do |p| %>
+            <%= render "shared/product_card_db", product: p %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="pos-empty">
+          <p>Sin postres todavía.</p>
+          <%= link_to "Agregar el primero →", stock_path, class: "pos-empty-cta" %>
+        </div>
+      <% end %>
+    </section>
+  </div>
+
+  <% if @order_items.any? %>
+    <%= link_to pedido_path, class: "pos-ticket" do %>
+      <span class="pos-ticket-count"><%= @order_items.sum(&:quantity) %></span>
+      <span class="pos-ticket-label">Ver pedido</span>
+      <strong class="pos-ticket-total">$<%= format("%.2f", @order.total) %></strong>
+    <% end %>
+  <% end %>
+</div>

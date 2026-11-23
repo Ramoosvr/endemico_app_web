@@ -1,0 +1,159 @@
+<% content_for :title, "Ajustes · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Ajustes</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :ajustes, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <%= form_with url: ajustes_path, method: :patch, local: true, class: "ajustes-form" do %>
+
+    <section class="ajustes-group ajustes-group--operacion">
+      <header class="ajustes-head">
+        <h2 class="ajustes-title">Operación</h2>
+        <p class="ajustes-hint">Gobierna sugerencias de compra y alertas de stock.</p>
+      </header>
+
+      <div class="ajustes-grid ajustes-grid--3">
+        <label class="ajustes-field">
+          <span>Días de cobertura</span>
+          <input type="number" min="1" name="settings[coverage_days]" value="<%= @settings["coverage_days"] %>">
+          <small>Stock debe aguantar N días.</small>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Día de compra</span>
+          <select name="settings[purchase_day]">
+            <% %w[monday tuesday wednesday thursday friday saturday sunday].each do |d| %>
+              <option value="<%= d %>" <%= "selected" if @settings["purchase_day"] == d %>><%= d.capitalize %></option>
+            <% end %>
+          </select>
+          <small>Día principal de reposición.</small>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Margen de alerta (%)</span>
+          <input type="number" min="0" max="500" name="settings[alert_threshold_percent]" value="<%= @settings["alert_threshold_percent"] %>">
+          <small>Ej: mínimo 10 y margen 25% avisa al llegar a 12.5.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="ajustes-group ajustes-group--proveedor">
+      <header class="ajustes-head">
+        <h2 class="ajustes-title">Proveedor principal</h2>
+        <p class="ajustes-hint">Datos para la orden de compra y el envío por WhatsApp.</p>
+      </header>
+
+      <div class="ajustes-grid ajustes-grid--2">
+        <label class="ajustes-field">
+          <span>Nombre</span>
+          <input type="text" name="settings[supplier_name]" value="<%= @settings["supplier_name"] %>" placeholder="ej. Distribuidora La Michoacana">
+        </label>
+
+        <label class="ajustes-field">
+          <span>WhatsApp (sin + con país)</span>
+          <input type="text" name="settings[supplier_whatsapp]" value="<%= @settings["supplier_whatsapp"] %>" placeholder="ej. 5215512345678">
+        </label>
+      </div>
+    </section>
+
+    <section class="ajustes-group ajustes-group--agente">
+      <header class="ajustes-head">
+        <h2 class="ajustes-title">Terminal Clip (PinPad)</h2>
+        <p class="ajustes-hint">Al cobrar con tarjeta, el POS manda el monto a la terminal por internet. Si está apagado, el botón solo registra el método.</p>
+      </header>
+
+      <div class="ajustes-grid ajustes-grid--2">
+        <label class="ajustes-field ajustes-field--toggle">
+          <input type="hidden" name="settings[clip_enabled]" value="false">
+          <input type="checkbox" name="settings[clip_enabled]" value="true" <%= "checked" if ActiveModel::Type::Boolean.new.cast(@settings["clip_enabled"]) %>>
+          <span>Activar integración Clip</span>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Serial de la terminal</span>
+          <input type="text" name="settings[clip_serial_number]" value="<%= @settings["clip_serial_number"] %>" placeholder="ej. CLP123456">
+          <small>Número de serie físico, atrás o lateral de la Clip.</small>
+        </label>
+      </div>
+
+      <div class="ajustes-grid ajustes-grid--2">
+        <label class="ajustes-field">
+          <span>API key / code</span>
+          <input type="password" name="settings[clip_api_token]" value="<%= @settings["clip_api_token"] %>" placeholder="test_... o prod key">
+          <small>Prefijo <code>test_</code> = sandbox.</small>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Clave secreta</span>
+          <input type="password" name="settings[clip_secret_key]" value="<%= @settings["clip_secret_key"] %>" placeholder="UUID clave secreta">
+          <small>La del panel de developers; va como password en Basic Auth.</small>
+        </label>
+      </div>
+
+      <div class="ajustes-grid ajustes-grid--prompt">
+        <label class="ajustes-field">
+          <span>Base URL de la API</span>
+          <input type="text" name="settings[clip_base_url]" value="<%= @settings["clip_base_url"] %>" placeholder="https://api.payclip.io">
+          <small>Default: <code>https://api.payclip.io</code>. No hay servidor aparte de pruebas — se diferencia por el token.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="ajustes-group ajustes-group--agente">
+      <header class="ajustes-head">
+        <h2 class="ajustes-title">Agente de IA</h2>
+        <p class="ajustes-hint">Chat conectado a Claude (Anthropic). Requiere API key. Se cobra por uso directo a Anthropic.</p>
+      </header>
+
+      <div class="ajustes-grid ajustes-grid--3">
+        <label class="ajustes-field ajustes-field--toggle">
+          <input type="hidden" name="settings[ai_enabled]" value="false">
+          <input type="checkbox" name="settings[ai_enabled]" value="true" <%= "checked" if ActiveModel::Type::Boolean.new.cast(@settings["ai_enabled"]) %>>
+          <span>Activar agente</span>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Claude API key</span>
+          <input type="password" name="settings[ai_api_key]" value="<%= @settings["ai_api_key"] %>" placeholder="sk-ant-...">
+          <small>Obtén una en console.anthropic.com.</small>
+        </label>
+
+        <label class="ajustes-field">
+          <span>Modelo</span>
+          <select name="settings[ai_model]">
+            <% %w[claude-opus-4-7 claude-sonnet-4-6 claude-haiku-4-5-20251001].each do |m| %>
+              <option value="<%= m %>" <%= "selected" if @settings["ai_model"] == m %>><%= m %></option>
+            <% end %>
+          </select>
+          <small>Opus preciso, Sonnet equilibrado, Haiku barato.</small>
+        </label>
+      </div>
+
+      <div class="ajustes-grid ajustes-grid--prompt">
+        <label class="ajustes-field">
+          <span>Instrucciones del agente (system prompt)</span>
+          <textarea name="settings[ai_system_prompt]" rows="5"><%= @settings["ai_system_prompt"] %></textarea>
+          <small>Define personalidad y reglas. Modificable sin tocar código.</small>
+        </label>
+      </div>
+    </section>
+
+    <div class="ajustes-actions-row">
+      <div class="ajustes-actions">
+        <small>Los cambios aplican de inmediato en todo el sistema.</small>
+        <button type="submit" class="ajustes-submit">Guardar ajustes</button>
+      </div>
+    </div>
+
+  <% end %>
+</div>

@@ -1,0 +1,82 @@
+<% defaults = product.product_ingredients.select { |pi| pi.default_included } %>
+<% extras   = product.product_ingredients.reject { |pi| pi.default_included } %>
+
+<section class="pshow-panel">
+  <header class="pshow-panel-head">
+    <h2 class="pshow-panel-title">Ingredientes</h2>
+    <p class="pshow-panel-hint">Los <strong>incluidos</strong> pueden quitarse al cobrar. Los <strong>extras</strong> suman al precio si el cliente los pide.</p>
+  </header>
+
+  <div class="pshow-split">
+    <div class="pshow-col">
+      <div class="pshow-col-head">
+        <h3>Incluidos por defecto</h3>
+        <span class="pshow-count"><%= defaults.size %></span>
+      </div>
+      <% if defaults.any? %>
+        <ul class="irow-list">
+          <% defaults.each do |pi| %>
+            <%= render "ingredient_row", product: product, pi: pi %>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="pshow-col-empty">Nada aún. Agrega abajo marcando "viene por defecto".</p>
+      <% end %>
+    </div>
+
+    <div class="pshow-col">
+      <div class="pshow-col-head">
+        <h3>Extras opcionales</h3>
+        <span class="pshow-count"><%= extras.size %></span>
+      </div>
+      <% if extras.any? %>
+        <ul class="irow-list">
+          <% extras.each do |pi| %>
+            <%= render "ingredient_row", product: product, pi: pi %>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="pshow-col-empty">Nada aún. Agrega abajo desmarcando "viene por defecto".</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="iadd">
+    <h3 class="iadd-title">Agregar ingrediente</h3>
+    <%= form_with url: product_product_ingredients_path(product), method: :post, local: true, class: "iadd-form" do %>
+      <div class="iadd-pick">
+        <label class="iadd-label">
+          <span>Del catálogo</span>
+          <%= select_tag "product_ingredient[ingredient_id]",
+                options_from_collection_for_select(catalog, :id, :name),
+                include_blank: "— elegir —",
+                class: "prod-form-input" %>
+        </label>
+        <div class="iadd-or">o</div>
+        <label class="iadd-label">
+          <span>Nuevo</span>
+          <%= text_field_tag "product_ingredient[new_ingredient_name]", nil, placeholder: "ej. queso cheddar", class: "prod-form-input" %>
+        </label>
+      </div>
+      <div class="iadd-tune">
+        <label class="iadd-toggle">
+          <input type="hidden" name="product_ingredient[default_included]" value="0">
+          <%= check_box_tag "product_ingredient[default_included]", "1", true %>
+          <span>viene por defecto</span>
+        </label>
+        <label class="iadd-price">
+          <span>Consumo por venta</span>
+          <%= number_field_tag "product_ingredient[quantity_per_unit]", 0, step: 0.001, min: 0, class: "prod-form-input", placeholder: "ej. 0.150" %>
+        </label>
+        <label class="iadd-price">
+          <span>Precio extra</span>
+          <div class="prod-form-money">
+            <span>$</span>
+            <%= number_field_tag "product_ingredient[extra_price]", format("%.2f", product.suggested_extra_price), step: 0.01, min: 0, class: "prod-form-input" %>
+          </div>
+        </label>
+        <button type="submit" class="iadd-btn">Agregar</button>
+      </div>
+    <% end %>
+  </div>
+</section>

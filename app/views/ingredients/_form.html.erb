@@ -1,0 +1,46 @@
+<%= form_with model: ingredient, url: url, method: (ingredient.persisted? ? :patch : :post), local: true, class: "insumo-form" do |f| %>
+  <% if ingredient.errors.any? %>
+    <div class="pos-flash pos-flash--error">
+      <%= ingredient.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <label class="insumo-field">
+    <span>Nombre</span>
+    <%= f.text_field :name, required: true, placeholder: "ej. leche entera" %>
+  </label>
+
+  <div class="insumo-field-row">
+    <label class="insumo-field">
+      <span>Unidad</span>
+      <%= f.select :unit, Ingredient::UNITS.map { |u| [u, u] } %>
+    </label>
+    <label class="insumo-field">
+      <span>Precio por unidad</span>
+      <%= f.number_field :cost_per_unit, step: "0.01", min: 0, placeholder: "0.00" %>
+    </label>
+  </div>
+
+  <div class="insumo-field-row">
+    <label class="insumo-field">
+      <span>Stock actual</span>
+      <%= f.number_field :stock, step: "0.001", min: 0 %>
+    </label>
+    <label class="insumo-field">
+      <span>Stock mínimo</span>
+      <%= f.number_field :min_stock, step: "0.001", min: 0 %>
+    </label>
+  </div>
+
+  <label class="insumo-field">
+    <span>Proveedor (opcional)</span>
+    <%= f.text_field :supplier, placeholder: "ej. La Michoacana" %>
+  </label>
+
+  <div class="insumo-form-actions">
+    <%= f.submit submit_label, class: "insumo-submit" %>
+    <% if ingredient.persisted? %>
+      <%= link_to "cancelar", insumos_path, class: "insumo-btn" %>
+    <% end %>
+  </div>
+<% end %>

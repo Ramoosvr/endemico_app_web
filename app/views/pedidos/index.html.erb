@@ -1,0 +1,90 @@
+<% content_for :title, "Pedido · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Pedido</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :pedido, zone: :frontoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <% if @items.any? %>
+    <section class="ped-head">
+      <div class="ped-head-main">
+        <span class="ped-head-label">pedido abierto</span>
+        <strong class="ped-head-count"><%= @items.sum(&:quantity) %> ítems · <%= @items.size %> líneas</strong>
+      </div>
+      <div class="ped-head-total">
+        <span>Total</span>
+        <strong>$<%= format("%.2f", @order.total) %></strong>
+      </div>
+    </section>
+
+    <section class="ped-grid">
+      <% @items.each do |item| %>
+        <article class="ped-card">
+          <header class="ped-card-head">
+            <div class="ped-card-qty"><%= item.quantity %>×</div>
+            <div class="ped-card-name">
+              <strong><%= item.product.name %></strong>
+              <span class="ped-card-kind ped-card-kind--<%= item.product.kind %>"><%= item.product.kind %></span>
+            </div>
+            <div class="ped-card-price">$<%= format("%.2f", item.line_total) %></div>
+          </header>
+
+          <% mods = item.modifier_lines %>
+          <% if mods.any? %>
+            <ul class="ped-card-mods">
+              <% mods.each do |m| %>
+                <li><%= m %></li>
+              <% end %>
+            </ul>
+          <% end %>
+
+          <% if item.notes.present? %>
+            <p class="ped-card-note">📝 <%= item.notes %></p>
+          <% end %>
+
+          <footer class="ped-card-foot">
+            <%= button_to "Quitar", item_cart_path(item), method: :delete, class: "ped-card-del", form: { data: { turbo_confirm: "¿Quitar #{item.product.name}?" } } %>
+          </footer>
+        </article>
+      <% end %>
+    </section>
+
+    <footer class="ped-foot">
+      <div class="ped-foot-info">
+        <span class="ped-foot-label">por cobrar</span>
+        <strong class="ped-foot-total">$<%= format("%.2f", @order.total) %></strong>
+      </div>
+      <%
+        clip_on = Setting.get(:clip_enabled)
+        clip_path = clip_on ? clip_payment_path : checkout_cart_path(payment_method: "tarjeta")
+        clip_confirm = clip_on ? "¿Mandar $#{format('%.2f', @order.total)} a la terminal?" : "¿Cobrar con tarjeta $#{format('%.2f', @order.total)}?"
+      %>
+      <div class="ped-foot-pay">
+        <%= button_to "💵 Efectivo", checkout_cart_path(payment_method: "efectivo"),
+              method: :post, class: "cart-pay-btn cart-pay-btn--cash cart-pay-btn--lg",
+              form: { data: { turbo_confirm: "¿Cobrar en efectivo $#{format('%.2f', @order.total)}?" } } %>
+        <%= button_to "💳 Tarjeta#{clip_on ? ' (Clip)' : ''}", clip_path,
+              method: :post, class: "cart-pay-btn cart-pay-btn--card cart-pay-btn--lg",
+              form: { data: { turbo_confirm: clip_confirm } } %>
+        <%= button_to "📱 Transferencia", checkout_cart_path(payment_method: "transferencia"),
+              method: :post, class: "cart-pay-btn cart-pay-btn--transfer cart-pay-btn--lg",
+              form: { data: { turbo_confirm: "¿Cobrar por transferencia $#{format('%.2f', @order.total)}?" } } %>
+      </div>
+    </footer>
+  <% else %>
+    <div class="ped-empty">
+      <h2>Sin pedido abierto</h2>
+      <p>Agrega productos desde el POS para comenzar un pedido.</p>
+      <%= link_to "Ir al POS →", main_path, class: "corte-empty-cta" %>
+    </div>
+  <% end %>
+</div>

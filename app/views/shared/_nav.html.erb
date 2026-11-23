@@ -1,0 +1,44 @@
+<%
+  active ||= nil
+  zone ||= :frontoffice
+
+  front_links = [
+    [ "pedido",  pedido_path, :pedido ],
+    [ "corte",   corte_path,  :corte ],
+    [ "stock",   stock_path,  :stock ]
+  ]
+
+  back_links = [
+    [ "productos", stock_path,    :stock ],
+    [ "insumos",   insumos_path,  :insumos ],
+    [ "análisis",  analisis_path, :analisis ],
+    [ "agente",    agente_path,   :agente ],
+    [ "ajustes",   ajustes_path,  :ajustes ],
+    [ "usuarios",  usuarios_path, :usuarios ]
+  ]
+
+  links =
+    if zone == :backoffice
+      back_links
+    else
+      list = front_links.dup
+      list.unshift([ "main", main_path, :main ])
+      list
+    end
+%>
+
+<nav class="pos-nav" aria-label="Navegación principal">
+  <% if zone == :backoffice %>
+    <%= link_to "← frontoffice", main_path, class: "pos-nav-link pos-nav-link--back" %>
+  <% end %>
+
+  <% links.each do |label, path, key| %>
+    <%= link_to label, path, class: "pos-nav-link #{"pos-nav-link--active" if active == key}" %>
+  <% end %>
+
+  <% if zone == :frontoffice && admin? %>
+    <%= link_to "backoffice →", backoffice_path, class: "pos-nav-link pos-nav-link--admin" %>
+  <% end %>
+
+  <%= button_to "salir", logout_path, method: :delete, class: "pos-nav-link pos-nav-logout" %>
+</nav>

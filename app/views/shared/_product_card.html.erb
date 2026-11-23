@@ -1,0 +1,11 @@
+<article class="pcard">
+  <div class="pcard-photo pcard-photo--<%= product[:tone] %>">
+    <button type="button" class="pcard-add" aria-label="Agregar <%= product[:name] %>">+</button>
+    <%= render "shared/product_illustration", tone: product[:tone] %>
+  </div>
+  <div class="pcard-body">
+    <p class="pcard-caption"><%= product[:caption] %></p>
+    <h3 class="pcard-name"><%= product[:name] %></h3>
+    <p class="pcard-price">$<%= format("%.2f", product[:price]) %></p>
+  </div>
+</article>

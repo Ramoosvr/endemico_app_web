@@ -1,0 +1,78 @@
+<% case tone
+   when "cold-brew" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <defs><linearGradient id="g-cb" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a2a15"/><stop offset="1" stop-color="#2a1608"/></linearGradient></defs>
+    <path d="M42 30 h36 l-4 70 a8 8 0 0 1 -8 7 h-12 a8 8 0 0 1 -8 -7 z" fill="url(#g-cb)"/>
+    <path d="M42 30 h36 v6 h-36 z" fill="#efe0c1" opacity=".3"/>
+    <circle cx="55" cy="55" r="4" fill="#efe0c1" opacity=".4"/>
+    <circle cx="68" cy="75" r="3" fill="#efe0c1" opacity=".35"/>
+  </svg>
+
+<% when "matcha" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <defs><linearGradient id="g-m" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9ab464"/><stop offset=".4" stop-color="#7d9b4a"/><stop offset="1" stop-color="#5e7a33"/></linearGradient></defs>
+    <path d="M40 30 h40 l-5 72 a7 7 0 0 1 -7 6 h-16 a7 7 0 0 1 -7 -6 z" fill="url(#g-m)"/>
+    <ellipse cx="60" cy="34" rx="20" ry="4" fill="#dfe8ba"/>
+  </svg>
+
+<% when "flat-white" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <circle cx="60" cy="60" r="38" fill="#f1e2c6"/>
+    <circle cx="60" cy="60" r="38" fill="none" stroke="#c8a373" stroke-width="2"/>
+    <circle cx="60" cy="60" r="30" fill="#c8945a"/>
+    <path d="M60 42 q-10 10 0 20 q10 -10 0 -20 z M60 50 q-7 7 0 14 q7 -7 0 -14 z" fill="#f3e3c8"/>
+    <path d="M60 40 v40" stroke="#a97138" stroke-width="1.5" fill="none" opacity=".6"/>
+  </svg>
+
+<% when "espresso" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <path d="M40 48 h38 a4 4 0 0 1 4 4 v16 a16 16 0 0 1 -16 16 h-14 a16 16 0 0 1 -16 -16 v-16 a4 4 0 0 1 4 -4 z" fill="#efe3ca"/>
+    <path d="M78 54 q14 2 14 12 q0 10 -14 12" fill="none" stroke="#efe3ca" stroke-width="5"/>
+    <ellipse cx="54" cy="56" rx="18" ry="4" fill="#3a1f0d"/>
+    <ellipse cx="54" cy="55" rx="14" ry="2.5" fill="#8d5a2c"/>
+  </svg>
+
+<% when "chocolate" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <ellipse cx="60" cy="78" rx="38" ry="8" fill="#e6d6b4"/>
+    <ellipse cx="60" cy="78" rx="30" ry="5" fill="#d9c69c"/>
+    <path d="M40 76 l20 -40 l20 40 z" fill="#4a2616"/>
+    <path d="M40 76 l20 -40 l20 40 z" fill="none" stroke="#2b140a" stroke-width="1"/>
+    <circle cx="60" cy="40" r="2" fill="#fff"/>
+    <circle cx="55" cy="46" r="1.5" fill="#fff"/>
+    <circle cx="64" cy="48" r="1.5" fill="#fff"/>
+  </svg>
+
+<% when "sandwich" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <ellipse cx="60" cy="82" rx="40" ry="6" fill="#e6d6b4"/>
+    <path d="M28 70 q32 -24 64 0 v4 q-32 10 -64 0 z" fill="#c8945a"/>
+    <path d="M30 62 q30 -18 60 0 q-30 6 -60 0 z" fill="#8d4a26"/>
+    <path d="M30 56 q30 -8 60 0 q-30 4 -60 0 z" fill="#5e7a33"/>
+    <path d="M30 50 q30 -20 60 0 v4 q-30 6 -60 0 z" fill="#c8945a"/>
+  </svg>
+
+<% when "avocado" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <circle cx="60" cy="60" r="38" fill="#e6d6b4"/>
+    <circle cx="60" cy="60" r="30" fill="#c8a373"/>
+    <path d="M38 60 q22 -18 44 0 q-22 10 -44 0 z" fill="#6f8d3f"/>
+    <circle cx="48" cy="54" r="2" fill="#2b140a"/>
+    <circle cx="68" cy="56" r="2" fill="#2b140a"/>
+    <circle cx="58" cy="62" r="2" fill="#2b140a"/>
+  </svg>
+
+<% when "concha" %>
+  <svg viewBox="0 0 120 120" class="pill" aria-hidden="true">
+    <circle cx="60" cy="62" r="34" fill="#e6b990"/>
+    <circle cx="60" cy="62" r="34" fill="none" stroke="#c7925f" stroke-width="1.5"/>
+    <g stroke="#a46a3b" stroke-width="2" fill="none" opacity=".75">
+      <path d="M38 48 q22 -8 44 0"/>
+      <path d="M36 58 q24 -8 48 0"/>
+      <path d="M36 68 q24 -8 48 0"/>
+      <path d="M38 78 q22 -8 44 0"/>
+      <path d="M50 42 v38 M60 40 v42 M70 42 v38"/>
+    </g>
+  </svg>
+
+<% end %>

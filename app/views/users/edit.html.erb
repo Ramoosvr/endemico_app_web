@@ -1,0 +1,24 @@
+<% content_for :title, "Editar #{@user.name} · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Editar usuario</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :usuarios, zone: :backoffice %>
+  </header>
+
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="insumos-layout insumos-layout--edit">
+    <aside class="insumos-form">
+      <div class="corte-section-head">
+        <h2><%= @user.name %></h2>
+      </div>
+      <%= render "form", user: @user, submit_label: "Guardar cambios", url: usuario_path(@user) %>
+    </aside>
+  </div>
+</div>

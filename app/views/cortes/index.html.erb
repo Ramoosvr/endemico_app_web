@@ -1,0 +1,196 @@
+<% content_for :title, "Corte · Endémico" %>
+
+<%
+  period_labels = { "day" => "día", "week" => "semana", "month" => "mes" }
+
+  range_label =
+    case @period
+    when "week"  then "#{l(@range_start.to_date, format: :long) rescue @range_start.strftime("%d %b")} — #{l(@range_end.to_date, format: :long) rescue @range_end.strftime("%d %b %Y")}"
+    when "month" then @date.strftime("%B %Y").capitalize
+    else              (l(@date, format: :long) rescue @date.strftime("%A, %d %b %Y"))
+    end
+%>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Corte</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :corte, zone: :frontoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="corte-periodbar">
+    <% CortesController::PERIODS.each do |p| %>
+      <%= link_to period_labels[p],
+            corte_path(period: p, date: @date.iso8601),
+            class: "corte-period-tab #{"corte-period-tab--active" if @period == p}" %>
+    <% end %>
+  </div>
+
+  <div class="corte-drive">
+    <% if current_user.google_refresh_token.present? %>
+      <%= button_to "⬆ Subir corte a Drive",
+            corte_upload_path(period: @period, date: @date.iso8601),
+            method: :post,
+            class: "corte-drive-upload",
+            data: { turbo_confirm: "¿Subir el corte de este #{period_labels[@period]} a Google Drive?" } %>
+      <%= button_to "desconectar Google",
+            google_oauth_disconnect_path,
+            method: :delete,
+            class: "corte-drive-disconnect",
+            data: { turbo_confirm: "¿Desconectar tu cuenta de Google de Endémico?" } %>
+    <% else %>
+      <%= link_to "Conectar con Google Drive", google_oauth_authorize_path, class: "corte-drive-connect" %>
+    <% end %>
+  </div>
+
+  <div class="corte-datebar">
+    <%= form_with url: corte_path, method: :get, local: true, class: "corte-datefilter" do %>
+      <%= hidden_field_tag :period, @period %>
+      <button type="submit" name="date" value="<%= @prev_date.iso8601 %>" class="corte-nav">‹</button>
+      <input type="date" name="date" value="<%= @date.iso8601 %>" onchange="this.form.submit()" class="corte-date">
+      <% if @date != Date.current %>
+        <button type="submit" name="date" value="<%= @next_date.iso8601 %>" class="corte-nav">›</button>
+        <%= link_to "hoy", corte_path(period: @period), class: "corte-today" %>
+      <% else %>
+        <span class="corte-today corte-today--inert">hoy</span>
+      <% end %>
+    <% end %>
+    <div class="corte-datelabel"><%= range_label %></div>
+  </div>
+
+  <% if @orders.any? %>
+    <section class="corte-metrics">
+      <div class="corte-metric corte-metric--primary">
+        <span class="corte-metric-label">vendido</span>
+        <strong class="corte-metric-value">$<%= format("%.2f", @total_revenue) %></strong>
+      </div>
+      <div class="corte-metric">
+        <span class="corte-metric-label">pedidos</span>
+        <strong class="corte-metric-value"><%= @orders.size %></strong>
+      </div>
+      <div class="corte-metric">
+        <span class="corte-metric-label">artículos</span>
+        <strong class="corte-metric-value"><%= @total_items %></strong>
+      </div>
+      <div class="corte-metric corte-metric--split">
+        <span class="corte-metric-label">por método de pago</span>
+        <div class="corte-split">
+          <% @by_payment.each do |method, amount| %>
+            <div><em><%= method %></em><strong>$<%= format("%.2f", amount) %></strong></div>
+          <% end %>
+        </div>
+      </div>
+      <div class="corte-metric corte-metric--split">
+        <span class="corte-metric-label">por tipo</span>
+        <div class="corte-split">
+          <div><em>bebida</em><strong>$<%= format("%.2f", @by_kind["bebida"] || 0) %></strong></div>
+          <div><em>comida</em><strong>$<%= format("%.2f", @by_kind["comida"] || 0) %></strong></div>
+          <div><em>postre</em><strong>$<%= format("%.2f", @by_kind["postre"] || 0) %></strong></div>
+        </div>
+      </div>
+    </section>
+
+    <% if @daily_breakdown.present? %>
+      <% max_rev = @daily_breakdown.map { |_, v| v[:revenue] }.max.to_f %>
+      <section class="corte-break">
+        <div class="corte-section-head">
+          <h2>Por día</h2>
+          <span><%= @daily_breakdown.size %> días con ventas</span>
+        </div>
+        <ul class="corte-break-list">
+          <% @daily_breakdown.each do |day, data| %>
+            <% width = max_rev.zero? ? 0 : (data[:revenue].to_f / max_rev * 100).round %>
+            <li class="corte-break-row">
+              <%= link_to corte_path(period: "day", date: day.iso8601), class: "corte-break-link" do %>
+                <span class="corte-break-day"><%= day.strftime("%a %d %b") %></span>
+                <div class="corte-break-bar"><div style="width: <%= width %>%"></div></div>
+                <span class="corte-break-revenue">$<%= format("%.2f", data[:revenue]) %></span>
+                <span class="corte-break-orders"><%= data[:orders] %> pedidos</span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <div class="corte-layout">
+      <% if @period == "day" %>
+        <section class="corte-orders">
+          <div class="corte-section-head">
+            <h2>Pedidos</h2>
+            <span>más recientes primero</span>
+          </div>
+          <ul class="corte-list">
+            <% @orders.each do |order| %>
+              <li class="corder">
+                <header class="corder-head">
+                  <div class="corder-when">
+                    <strong><%= order.completed_at.strftime("%H:%M") %></strong>
+                    <span>#<%= order.id %></span>
+                  </div>
+                  <div class="corder-by"><%= order.user&.name %></div>
+                  <div class="corder-total">$<%= format("%.2f", order.total) %></div>
+                </header>
+                <ul class="corder-items">
+                  <% order.order_items.each do |item| %>
+                    <li class="corder-item">
+                      <div class="corder-item-main">
+                        <strong><%= item.quantity %>× <%= item.product.name %></strong>
+                        <% mods = item.modifier_lines %>
+                        <% if mods.any? %>
+                          <ul class="corder-item-mods">
+                            <% mods.each do |m| %>
+                              <li><%= m %></li>
+                            <% end %>
+                          </ul>
+                        <% end %>
+                        <% if item.notes.present? %>
+                          <p class="corder-item-note">📝 <%= item.notes %></p>
+                        <% end %>
+                      </div>
+                      <span class="corder-item-price">$<%= format("%.2f", item.line_total) %></span>
+                    </li>
+                  <% end %>
+                </ul>
+              </li>
+            <% end %>
+          </ul>
+        </section>
+      <% end %>
+
+      <aside class="corte-side">
+        <div class="corte-top">
+          <h2 class="corte-section-head-h2">Top productos</h2>
+          <% if @top_products.any? %>
+            <ol class="corte-top-list">
+              <% @top_products.each_with_index do |row, i| %>
+                <li class="corte-top-row">
+                  <span class="corte-top-rank"><%= i + 1 %></span>
+                  <div class="corte-top-body">
+                    <strong><%= row[:name] %></strong>
+                    <span><%= row[:qty] %> vendidos · $<%= format("%.2f", row[:revenue]) %></span>
+                  </div>
+                </li>
+              <% end %>
+            </ol>
+          <% else %>
+            <p class="corte-empty">Sin datos.</p>
+          <% end %>
+        </div>
+      </aside>
+    </div>
+  <% else %>
+    <div class="corte-empty-day">
+      <h2>Nada cobrado en este <%= period_labels[@period] %></h2>
+      <p>Los pedidos aparecen aquí al tocar <strong>Cobrar</strong> en el POS.</p>
+      <%= link_to "Ir al POS →", main_path, class: "corte-empty-cta" %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,123 @@
+<section class="pshow-panel">
+  <header class="pshow-panel-head">
+    <h2 class="pshow-panel-title">Grupos de opciones</h2>
+    <p class="pshow-panel-hint">Preguntas que haces al cobrar: <em>"tipo de leche"</em>, <em>"azúcar"</em>. Cada respuesta puede sumar al precio.</p>
+  </header>
+
+  <% if product.option_groups.any? %>
+    <div class="ogrid">
+      <% product.option_groups.ordered.each do |og| %>
+        <article class="ogroup">
+          <%= form_with model: og, url: product_option_group_path(product, og), method: :patch, local: true, class: "ogroup-form" do |f| %>
+            <header class="ogroup-head">
+              <%= f.text_field :name, required: true, placeholder: "Nombre del grupo", class: "ogroup-name" %>
+              <div class="ogroup-flags">
+                <%= f.select :selection_mode,
+                      [["elegir una", "single"], ["elegir varias", "multiple"]],
+                      {},
+                      class: "ogroup-mode" %>
+                <label class="ogroup-req">
+                  <%= f.hidden_field :required, value: "0" %>
+                  <%= f.check_box :required %>
+                  <span>obligatorio</span>
+                </label>
+              </div>
+            </header>
+
+            <ul class="ochoices">
+              <% og.option_choices.ordered.each do |oc| %>
+                <%= f.fields_for :option_choices, oc do |cf| %>
+                  <li class="ochoice">
+                    <%= cf.hidden_field :id %>
+                    <%= cf.text_field :name, required: true, placeholder: "Opción", class: "ochoice-name" %>
+                    <div class="ochoice-price">
+                      <span>$</span>
+                      <%= cf.number_field :extra_price, step: 0.01, min: 0 %>
+                    </div>
+                    <label class="ochoice-flag" title="Es la opción por defecto">
+                      <%= cf.hidden_field :default_selected, value: "0" %>
+                      <%= cf.check_box :default_selected %>
+                      <span>★</span>
+                    </label>
+                    <label class="ochoice-del" title="Borrar al guardar">
+                      <%= cf.check_box :_destroy %>
+                      <span>×</span>
+                    </label>
+                  </li>
+                <% end %>
+              <% end %>
+              <% 2.times do %>
+                <%= f.fields_for :option_choices, og.option_choices.build do |cf| %>
+                  <li class="ochoice ochoice--new">
+                    <%= cf.text_field :name, placeholder: "Nueva opción", class: "ochoice-name" %>
+                    <div class="ochoice-price">
+                      <span>$</span>
+                      <%= cf.number_field :extra_price, step: 0.01, min: 0, placeholder: "0.00" %>
+                    </div>
+                    <label class="ochoice-flag" title="Es la opción por defecto">
+                      <%= cf.hidden_field :default_selected, value: "0" %>
+                      <%= cf.check_box :default_selected %>
+                      <span>★</span>
+                    </label>
+                    <span></span>
+                  </li>
+                <% end %>
+              <% end %>
+            </ul>
+
+            <footer class="ogroup-foot">
+              <button type="submit" class="ogroup-save">Guardar</button>
+              <%= button_to "Eliminar grupo", product_option_group_path(product, og), method: :delete, class: "ogroup-del", form: { data: { turbo_confirm: "¿Eliminar grupo #{og.name}?" } } %>
+            </footer>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="pshow-col-empty pshow-col-empty--wide">Aún no tiene grupos de opciones. Crea el primero abajo.</p>
+  <% end %>
+
+  <article class="ogroup ogroup--new">
+    <h3 class="ogroup-newtitle">Nuevo grupo</h3>
+    <%= form_with model: new_option_group, url: product_option_groups_path(product), method: :post, local: true, class: "ogroup-form" do |f| %>
+      <header class="ogroup-head">
+        <%= f.text_field :name, required: true, placeholder: "ej. Tipo de leche", class: "ogroup-name" %>
+        <div class="ogroup-flags">
+          <%= f.select :selection_mode,
+                [["elegir una", "single"], ["elegir varias", "multiple"]],
+                { selected: "single" },
+                class: "ogroup-mode" %>
+          <label class="ogroup-req">
+            <%= f.hidden_field :required, value: "0" %>
+            <%= f.check_box :required, checked: true %>
+            <span>obligatorio</span>
+          </label>
+        </div>
+      </header>
+
+      <ul class="ochoices">
+        <% new_option_group.option_choices.each do |oc| %>
+          <%= f.fields_for :option_choices, oc do |cf| %>
+            <li class="ochoice ochoice--new">
+              <%= cf.text_field :name, placeholder: "Opción", class: "ochoice-name" %>
+              <div class="ochoice-price">
+                <span>$</span>
+                <%= cf.number_field :extra_price, step: 0.01, min: 0, placeholder: "0.00" %>
+              </div>
+              <label class="ochoice-flag" title="Es la opción por defecto">
+                <%= cf.hidden_field :default_selected, value: "0" %>
+                <%= cf.check_box :default_selected %>
+                <span>★</span>
+              </label>
+              <span></span>
+            </li>
+          <% end %>
+        <% end %>
+      </ul>
+
+      <footer class="ogroup-foot">
+        <button type="submit" class="ogroup-save">Crear grupo</button>
+      </footer>
+    <% end %>
+  </article>
+</section>

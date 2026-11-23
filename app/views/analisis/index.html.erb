@@ -1,0 +1,154 @@
+<% content_for :title, "Análisis · Endémico" %>
+
+<%
+  status_label = { ok: "ok", low: "bajo", critical: "crítico", out: "agotado" }
+  weekday_names = { 1 => "lun", 2 => "mar", 3 => "mié", 4 => "jue", 5 => "vie", 6 => "sáb", 0 => "dom" }
+  rows_sorted = @analysis[:rows].sort_by do |r|
+    sort_priority = { out: 0, critical: 1, low: 2, ok: 3 }[r[:status]]
+    [ sort_priority, -r[:suggested_buy_cost] ]
+  end
+  needs_buy_rows = rows_sorted.select { |r| r[:suggested_buy_qty] > 0 }
+%>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Análisis</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :analisis, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <section class="corte-metrics">
+    <div class="corte-metric corte-metric--primary">
+      <span class="corte-metric-label">compra sugerida hoy</span>
+      <strong class="corte-metric-value">$<%= format("%.2f", @analysis[:global][:total_cost]) %></strong>
+    </div>
+    <div class="corte-metric">
+      <span class="corte-metric-label">insumos por reponer</span>
+      <strong class="corte-metric-value"><%= @analysis[:global][:needs_buy] %></strong>
+    </div>
+    <div class="corte-metric">
+      <span class="corte-metric-label">alertas activas</span>
+      <strong class="corte-metric-value"><%= @analysis[:global][:alerts] %></strong>
+    </div>
+    <div class="corte-metric">
+      <span class="corte-metric-label">día de compra</span>
+      <strong class="corte-metric-value" style="font-size: 20px;"><%= @purchase_day.to_s.capitalize %></strong>
+    </div>
+  </section>
+
+  <div class="analisis-toolbar">
+    <%= form_with url: analisis_path, method: :get, local: true, class: "analisis-weeks" do %>
+      <label>
+        <span>Historial:</span>
+        <select name="weeks" onchange="this.form.submit()">
+          <% [ 1, 2, 4, 6, 8, 12, 26 ].each do |w| %>
+            <option value="<%= w %>" <%= "selected" if w == @weeks %>><%= w %> sem</option>
+          <% end %>
+        </select>
+      </label>
+      <small>Promedio basado en últimas <%= @weeks %> semanas · hoy es <strong><%= @today_name %></strong></small>
+    <% end %>
+
+    <div class="analisis-actions">
+      <%= link_to "⬇ Orden de compra CSV",
+            analisis_shopping_list_path(weeks: @weeks, format: :csv),
+            class: "corte-drive-connect" %>
+      <% if @supplier_whatsapp.present? %>
+        <%= link_to "📱 WhatsApp a #{@supplier_name.presence || 'proveedor'}",
+              analisis_whatsapp_path(weeks: @weeks),
+              class: "corte-drive-upload", style: "text-decoration: none; display: inline-block; padding: 9px 16px; border-radius: 999px; background: var(--terracotta); color: white; font-weight: 600; font-size: 13px;" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if needs_buy_rows.any? %>
+    <section class="corte-break" style="margin-top: 18px;">
+      <div class="corte-section-head">
+        <h2>Lista de compra sugerida</h2>
+        <span>cubre <%= @analysis[:coverage_days] %> días</span>
+      </div>
+      <ul class="shop-list">
+        <% needs_buy_rows.each do |r| %>
+          <% ing = r[:ingredient] %>
+          <li class="shop-row shop-row--<%= r[:status] %>">
+            <div class="shop-name">
+              <strong><%= ing.name %></strong>
+              <% if ing.supplier.present? %><small><%= ing.supplier %></small><% end %>
+            </div>
+            <div class="shop-qty"><%= r[:suggested_buy_qty] %> <%= ing.unit %></div>
+            <div class="shop-cost">$<%= format("%.2f", r[:suggested_buy_cost]) %></div>
+            <div class="shop-badge shop-badge--<%= r[:status] %>"><%= status_label[r[:status]] %></div>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% else %>
+    <p class="pos-empty" style="margin-top: 18px; text-align: center;">Nada por comprar — todos los insumos están cubiertos para <%= @analysis[:coverage_days] %> días.</p>
+  <% end %>
+
+  <section class="corte-break" style="margin-top: 18px;">
+    <div class="corte-section-head">
+      <h2>Consumo por día de semana</h2>
+      <span>promedio por insumo (últimas <%= @weeks %> sem)</span>
+    </div>
+
+    <% if rows_sorted.empty? %>
+      <p class="pos-empty">Sin insumos registrados. Agrega algunos en /insumos.</p>
+    <% else %>
+      <div class="analisis-table-wrap">
+        <table class="analisis-table">
+          <thead>
+            <tr>
+              <th class="t-left">Insumo</th>
+              <th>Stock</th>
+              <% [ 1, 2, 3, 4, 5, 6, 0 ].each do |wd| %>
+                <th><%= weekday_names[wd] %></th>
+              <% end %>
+              <th>prom/día</th>
+              <th>días</th>
+              <th>estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows_sorted.each do |r| %>
+              <% ing = r[:ingredient] %>
+              <% max_day = r[:weekday_avg].values.max.to_f %>
+              <tr class="analisis-row analisis-row--<%= r[:status] %>">
+                <td class="t-left">
+                  <strong><%= ing.name %></strong>
+                  <small><%= ing.unit %></small>
+                </td>
+                <td><%= ing.stock.to_f %></td>
+                <% [ 1, 2, 3, 4, 5, 6, 0 ].each do |wd| %>
+                  <% v = r[:weekday_avg][wd].to_f %>
+                  <% ratio = max_day.zero? ? 0 : (v / max_day * 100).round %>
+                  <td class="day-cell">
+                    <div class="day-bar" style="--v: <%= ratio %>%;"></div>
+                    <span><%= v.round(2) %></span>
+                  </td>
+                <% end %>
+                <td><strong><%= r[:avg_daily] %></strong></td>
+                <td>
+                  <% if r[:days_remaining] %>
+                    <%= r[:days_remaining] %>
+                  <% else %>
+                    <span class="t-mute">—</span>
+                  <% end %>
+                </td>
+                <td><span class="shop-badge shop-badge--<%= r[:status] %>"><%= status_label[r[:status]] %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </section>
+
+</div>

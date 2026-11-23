@@ -1,0 +1,22 @@
+<% content_for :title, "Editar #{@ingredient.name} · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Editar insumo</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :insumos, zone: :backoffice %>
+  </header>
+
+  <div class="insumos-layout insumos-layout--edit">
+    <aside class="insumos-form">
+      <div class="corte-section-head">
+        <h2><%= @ingredient.name %></h2>
+      </div>
+      <%= render "form", ingredient: @ingredient, submit_label: "Guardar cambios", url: ingredient_path(@ingredient) %>
+    </aside>
+  </div>
+</div>

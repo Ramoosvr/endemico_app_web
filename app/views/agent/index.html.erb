@@ -1,0 +1,71 @@
+<% content_for :title, "Agente IA · Endémico" %>
+
+<div class="pos">
+  <header class="pos-top">
+    <div class="pos-brand">
+      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
+      <h1 class="pos-brand-title">Agente</h1>
+      <div class="pos-brand-rule"></div>
+    </div>
+
+    <%= render "shared/nav", active: :agente, zone: :backoffice %>
+  </header>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <% unless @enabled && @api_key_set %>
+    <div class="agent-setup">
+      <h2>Configura el agente antes de empezar</h2>
+      <ul>
+        <% unless @enabled %><li>❌ El agente está <strong>desactivado</strong>.</li><% end %>
+        <% unless @api_key_set %><li>❌ Falta la <strong>API key de Claude</strong>.</li><% end %>
+      </ul>
+      <%= link_to "Ir a Ajustes", ajustes_path, class: "ajustes-submit", style: "text-decoration: none; display: inline-block;" %>
+    </div>
+  <% end %>
+
+  <div class="agent-wrap">
+    <section class="agent-chat">
+      <% if @messages.empty? %>
+        <div class="agent-empty">
+          <h2>Pregúntame lo que sea sobre tu stock, ventas y compras</h2>
+          <p>Algunos ejemplos:</p>
+          <ul>
+            <li>"¿Qué debo comprar el miércoles para aguantar la semana?"</li>
+            <li>"¿Cuál es mi día más fuerte de ventas?"</li>
+            <li>"¿Qué insumo me está costando más por semana?"</li>
+            <li>"Compárame el consumo de leche entre lunes y sábado."</li>
+            <li>"¿Qué producto debo subir de precio por margen bajo?"</li>
+          </ul>
+        </div>
+      <% else %>
+        <ul class="agent-messages">
+          <% @messages.each do |msg| %>
+            <li class="agent-msg agent-msg--<%= msg.role %>">
+              <div class="agent-msg-bubble">
+                <%= simple_format(msg.content, class: "agent-msg-text") %>
+              </div>
+              <time><%= l(msg.created_at, format: :short) rescue msg.created_at.strftime("%H:%M") %></time>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </section>
+
+    <%= form_with url: agente_path, method: :post, local: true, class: "agent-form" do %>
+      <%= text_area_tag :message, nil, rows: 2, placeholder: "Pregunta algo...",
+            class: "agent-input", required: true, autofocus: true %>
+      <div class="agent-form-actions">
+        <% if @messages.any? %>
+          <%= button_to "Nueva conversación", agente_reset_path, method: :delete,
+                class: "insumo-btn",
+                data: { turbo_confirm: "¿Borrar historial del chat?" } %>
+        <% end %>
+        <button type="submit" class="agent-submit">Enviar →</button>
+      </div>
+    <% end %>
+
+    <p class="agent-model">Modelo: <code><%= @model %></code></p>
+  </div>
+</div>

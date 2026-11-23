@@ -1,0 +1,33 @@
+<li class="irow">
+  <span class="irow-name">
+    <%= pi.ingredient.name %>
+    <small class="irow-unit"><%= pi.ingredient.unit %></small>
+  </span>
+
+  <%= form_with url: product_product_ingredient_path(product, pi), method: :patch, local: true, class: "irow-form" do %>
+    <label class="irow-toggle">
+      <input type="hidden" name="product_ingredient[default_included]" value="0">
+      <%= check_box_tag "product_ingredient[default_included]", "1", pi.default_included %>
+      <span><%= pi.default_included ? "por defecto" : "extra" %></span>
+    </label>
+
+    <label class="irow-qty" title="Cantidad consumida por venta">
+      <span>consumo</span>
+      <%= number_field_tag "product_ingredient[quantity_per_unit]", pi.quantity_per_unit.to_f, step: 0.001, min: 0 %>
+      <em><%= pi.ingredient.unit %></em>
+    </label>
+
+    <div class="irow-price">
+      <span>$</span>
+      <%= number_field_tag "product_ingredient[extra_price]", format("%.2f", pi.extra_price), step: 0.01, min: 0 %>
+    </div>
+
+    <button type="submit" class="irow-save" title="Guardar cambios">↵</button>
+  <% end %>
+
+  <%= button_to "×", product_product_ingredient_path(product, pi),
+        method: :delete,
+        class: "irow-del",
+        title: "Quitar",
+        form: { data: { turbo_confirm: "¿Quitar #{pi.ingredient.name}?" } } %>
+</li>
