@@ -89,10 +89,30 @@ class CartsController < ApplicationController
     method = params[:payment_method].to_s
     method = nil unless Order::PAYMENT_METHODS.include?(method)
 
-    @order.complete!(payment_method: method)
+    extra = {}
+    if method == "dolares"
+      usd_received = params[:usd_received].to_s.gsub(",", ".").to_d rescue 0.to_d
+      usd_rate     = (params[:usd_rate].presence&.to_s&.gsub(",", ".")&.to_d rescue nil) ||
+                     (Setting.get(:usd_rate) || 18.to_d)
+      if usd_received <= 0 || usd_rate <= 0
+        redirect_to pedido_path, alert: "Monto en dólares inválido."
+        return
+      end
+      mxn_equiv = usd_received * usd_rate
+      if mxn_equiv < @order.total.to_d
+        redirect_to pedido_path, alert: "Faltan dólares: equivalen a $#{format('%.2f', mxn_equiv)} y el total es $#{format('%.2f', @order.total)}."
+        return
+      end
+      extra = { usd_received: usd_received, usd_rate: usd_rate }
+    end
 
-    method_label = method ? " (#{method})" : ""
-    redirect_to main_path, notice: "Pedido cobrado: $#{format("%.2f", @order.total)}#{method_label}."
+    @order.complete!(payment_method: method, **extra)
+
+    notice = "Pedido cobrado: $#{format("%.2f", @order.total)}#{method ? " (#{method})" : ""}."
+    if method == "dolares" && @order.usd_change_mxn
+      notice += " Cambio: $#{format('%.2f', @order.usd_change_mxn)} MXN."
+    end
+    redirect_to main_path, notice: notice
   rescue ActiveRecord::RecordInvalid => e
     redirect_to main_path, alert: "No se pudo cobrar: #{e.message}"
   end

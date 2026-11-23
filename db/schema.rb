@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_195604) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_173619) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -145,6 +145,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_195604) do
     t.string "clip_request_id"
     t.string "clip_status"
     t.datetime "clip_last_checked_at"
+    t.decimal "usd_received", precision: 10, scale: 2
+    t.decimal "usd_rate", precision: 8, scale: 4
     t.index ["clip_request_id"], name: "index_orders_on_clip_request_id"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id"], name: "index_orders_on_user_id"
@@ -172,6 +174,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_195604) do
     t.integer "stock", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "subkind"
+    t.boolean "featured", default: false, null: false
+    t.index ["featured"], name: "index_products_on_featured"
+    t.index ["kind", "subkind"], name: "index_products_on_kind_and_subkind"
     t.index ["kind"], name: "index_products_on_kind"
   end
 

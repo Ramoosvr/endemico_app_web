@@ -1,34 +1,57 @@
-<article class="pcard" data-product-id="<%= product.id %>">
-  <div class="pcard-photo">
-    <% if product.stock > 0 %>
-      <% if product.customizable? %>
-        <button type="button"
-                class="pcard-add"
-                aria-label="Agregar <%= product.name %>"
-                onclick="document.getElementById('customize-<%= product.id %>').showModal()">+</button>
-      <% else %>
-        <%= button_to items_cart_path, method: :post, params: { product_id: product.id, quantity: 1 }, class: "pcard-add", form: { class: "pcard-add-form" }, aria: { label: "Agregar #{product.name}" } do %>+<% end %>
-      <% end %>
-    <% end %>
+<%
+  stock_available = product.stock.to_i > 0
+  customizable    = product.customizable?
+  action          = if !stock_available then :soldout
+                    elsif customizable then :open_modal
+                    else :add_one end
+%>
 
+<% card_body = capture do %>
+  <span class="pcard-photo">
     <% if product.photo.attached? %>
       <%= image_tag product.photo, class: "pcard-photo-img", alt: product.name %>
     <% else %>
-      <div class="pcard-photo-placeholder">
+      <span class="pcard-photo-placeholder">
         <span><%= product.name.first.upcase %></span>
-      </div>
+      </span>
     <% end %>
-    <% if product.stock <= 0 %>
-      <div class="pcard-sold-out">Agotado</div>
+    <% unless stock_available %>
+      <span class="pcard-sold-out">Agotado</span>
     <% end %>
-  </div>
-  <div class="pcard-body">
-    <p class="pcard-caption">Stock: <%= product.stock %></p>
-    <h3 class="pcard-name"><%= product.name %></h3>
-    <p class="pcard-price">$<%= format("%.2f", product.price) %></p>
-  </div>
-</article>
+  </span>
+  <span class="pcard-body">
+    <% if admin? %>
+      <span class="pcard-caption">Stock: <%= product.stock %></span>
+    <% end %>
+    <span class="pcard-name"><%= product.name %></span>
+    <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+  </span>
+<% end %>
 
-<% if product.customizable? && product.stock > 0 %>
+<% case action %>
+<% when :open_modal %>
+  <button type="button"
+          class="pcard pcard--btn"
+          data-product-id="<%= product.id %>"
+          aria-label="Agregar <%= product.name %>"
+          onclick="document.getElementById('customize-<%= product.id %>').showModal()">
+    <%= card_body %>
+  </button>
+<% when :add_one %>
+  <%= button_to items_cart_path,
+                method: :post,
+                params: { product_id: product.id, quantity: 1 },
+                class: "pcard pcard--btn",
+                form: { class: "pcard-form", data: { product_id: product.id } },
+                aria: { label: "Agregar #{product.name}" } do %>
+    <%= card_body %>
+  <% end %>
+<% else %>
+  <article class="pcard pcard--soldout" data-product-id="<%= product.id %>">
+    <%= card_body %>
+  </article>
+<% end %>
+
+<% if customizable && stock_available %>
   <%= render "shared/product_customize_modal", product: product %>
 <% end %>

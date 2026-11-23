@@ -11,15 +11,7 @@
 %>
 
 <div class="pos">
-  <header class="pos-top">
-    <div class="pos-brand">
-      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
-      <h1 class="pos-brand-title">Análisis</h1>
-      <div class="pos-brand-rule"></div>
-    </div>
-
-    <%= render "shared/nav", active: :analisis, zone: :backoffice %>
-  </header>
+  <%= render "shared/header", heading: "Análisis", active: :analisis, zone: :backoffice %>
 
   <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
   <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>

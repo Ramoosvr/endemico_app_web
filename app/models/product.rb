@@ -1,6 +1,20 @@
 class Product < ApplicationRecord
   KINDS = %w[bebida comida postre].freeze
 
+  SUBKINDS = {
+    "bebida" => %w[cafe_negro cafe_con_leche frios chai otro],
+    "comida" => %w[otro],
+    "postre" => %w[otro]
+  }.freeze
+
+  SUBKIND_LABELS = {
+    "cafe_negro"     => "Café negro",
+    "cafe_con_leche" => "Café con leche",
+    "frios"          => "Fríos",
+    "chai"           => "Chai",
+    "otro"           => "Otro"
+  }.freeze
+
   has_one_attached :photo
 
   has_many :product_ingredients, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
@@ -17,9 +31,14 @@ class Product < ApplicationRecord
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :stock, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
-  scope :bebidas, -> { where(kind: "bebida").order(:name) }
-  scope :comidas, -> { where(kind: "comida").order(:name) }
-  scope :postres, -> { where(kind: "postre").order(:name) }
+  scope :bebidas,  -> { where(kind: "bebida").order(:name) }
+  scope :comidas,  -> { where(kind: "comida").order(:name) }
+  scope :postres,  -> { where(kind: "postre").order(:name) }
+  scope :featured, -> { where(featured: true).order(:name) }
+
+  def subkind_label
+    SUBKIND_LABELS[subkind] || "Otro"
+  end
 
   def margin
     price.to_d - cost.to_d

@@ -1,9 +1,23 @@
 class MainController < ApplicationController
+  FEATURED_LIMIT = 4
+
   def index
-    @bebidas = Product.bebidas.includes(:product_ingredients, option_groups: :option_choices)
-    @comida  = Product.comidas.includes(:product_ingredients, option_groups: :option_choices)
-    @postres = Product.postres.includes(:product_ingredients, option_groups: :option_choices)
-    @order   = current_order
+    includes = [:product_ingredients, { option_groups: :option_choices }]
+
+    @bebidas = featured_or_fallback("bebida", includes)
+    @comida  = featured_or_fallback("comida", includes)
+    @postres = featured_or_fallback("postre", includes)
+
+    @order       = current_order
     @order_items = @order.order_items.includes(:product, :removed_ingredients, :extras, :chosen_options)
+  end
+
+  private
+
+  def featured_or_fallback(kind, includes)
+    scope = Product.where(kind: kind).includes(includes)
+    featured = scope.where(featured: true).order(:name).limit(FEATURED_LIMIT).to_a
+    return featured if featured.any?
+    scope.order(:name).limit(FEATURED_LIMIT).to_a
   end
 end

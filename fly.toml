@@ -1,0 +1,40 @@
+# fly.toml app configuration file for endemico-pos
+#
+# See https://docs.fly.io/reference/configuration for information about how to use this file.
+#
+
+app = 'endemico-pos'
+primary_region = 'dfw'
+console_command = '/rails/bin/rails console'
+
+[build]
+
+[deploy]
+  release_command = './bin/rails db:prepare'
+
+[env]
+  RAILS_ENV = 'production'
+  RAILS_LOG_TO_STDOUT = '1'
+  HTTP_PORT = '8080'
+  DATABASE_URL = 'sqlite3:///data/production.sqlite3'
+  SOLID_QUEUE_DATABASE_URL = 'sqlite3:///data/production_queue.sqlite3'
+  SOLID_CACHE_DATABASE_URL = 'sqlite3:///data/production_cache.sqlite3'
+  SOLID_CABLE_DATABASE_URL = 'sqlite3:///data/production_cable.sqlite3'
+  RAILS_STORAGE_PATH = '/data/storage'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[mounts]]
+  source = 'endemico_data'
+  destination = '/data'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

@@ -1,0 +1,17 @@
+<%
+  heading ||= "Endemico"
+  active  ||= nil
+  zone    ||= :frontoffice
+%>
+<header class="pos-top">
+  <div class="pos-brand">
+    <%= link_to main_path, class: "pos-brand-link-wrap", aria: { label: "Ir al main" } do %>
+      <span class="pos-brand-logo">
+        <%= render "shared/endemico_mark" %>
+      </span>
+      <h1 class="pos-brand-title"><%= heading %></h1>
+    <% end %>
+  </div>
+
+  <%= render "shared/nav", active: active, zone: zone %>
+</header>

@@ -68,6 +68,11 @@ FROM base
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash
+
+# Create data dir for SQLite + Active Storage persistence (owned by rails)
+RUN mkdir -p /data && chown -R rails:rails /data
+VOLUME ["/data"]
+
 USER 1000:1000
 
 # Copy built artifacts: gems, application

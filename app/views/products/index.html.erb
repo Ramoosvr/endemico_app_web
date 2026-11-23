@@ -1,15 +1,7 @@
 <% content_for :title, "Stock · Endémico" %>
 
 <div class="pos">
-  <header class="pos-top">
-    <div class="pos-brand">
-      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
-      <h1 class="pos-brand-title">Stock</h1>
-      <div class="pos-brand-rule"></div>
-    </div>
-
-    <%= render "shared/nav", active: :stock, zone: :frontoffice %>
-  </header>
+  <%= render "shared/header", heading: "Stock", active: :stock, zone: :frontoffice %>
 
   <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
   <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>

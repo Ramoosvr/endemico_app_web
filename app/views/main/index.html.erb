@@ -1,14 +1,7 @@
 <% content_for :title, "Endémico POS" %>
 
-<div class="pos">
-  <header class="pos-top">
-    <div class="pos-brand">
-      <h1 class="pos-brand-title">Endemico</h1>
-      <div class="pos-brand-rule"></div>
-    </div>
-
-    <%= render "shared/nav", active: :main, zone: :frontoffice %>
-  </header>
+<div class="pos pos--main">
+  <%= render "shared/header", heading: "Endemico", active: :main, zone: :frontoffice %>
 
   <% if flash[:notice] %>
     <div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div>
@@ -17,15 +10,12 @@
     <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
   <% end %>
 
-  <% if admin? %>
-    <%= link_to backoffice_path, class: "pos-main-bo-cta" do %>
-      ⚙ Ir al backoffice
-    <% end %>
-  <% end %>
-
   <div class="pos-columns">
     <section class="pos-section">
-      <h2 class="pos-section-title">Bebidas</h2>
+      <%= link_to catalogo_path("bebida"), class: "pos-section-btn" do %>
+        <span class="pos-section-btn-label">Bebidas</span>
+        <span class="pos-section-btn-arrow">→</span>
+      <% end %>
       <% if @bebidas.any? %>
         <div class="pos-grid">
           <% @bebidas.each do |p| %>
@@ -41,7 +31,10 @@
     </section>
 
     <section class="pos-section">
-      <h2 class="pos-section-title">Comida</h2>
+      <%= link_to catalogo_path("comida"), class: "pos-section-btn" do %>
+        <span class="pos-section-btn-label">Comida</span>
+        <span class="pos-section-btn-arrow">→</span>
+      <% end %>
       <% if @comida.any? %>
         <div class="pos-grid">
           <% @comida.each do |p| %>
@@ -57,7 +50,10 @@
     </section>
 
     <section class="pos-section">
-      <h2 class="pos-section-title">Postres</h2>
+      <%= link_to catalogo_path("postre"), class: "pos-section-btn" do %>
+        <span class="pos-section-btn-label">Postres</span>
+        <span class="pos-section-btn-arrow">→</span>
+      <% end %>
       <% if @postres.any? %>
         <div class="pos-grid">
           <% @postres.each do |p| %>

@@ -15,6 +15,8 @@ Rails.application.routes.draw do
 
   get "main" => "main#index", as: :main
 
+  get "catalogo/:kind" => "catalogo#show", as: :catalogo, constraints: { kind: /bebida|comida|postre/ }
+
   get "pedido" => "pedidos#index", as: :pedido
 
   get  "corte" => "cortes#index", as: :corte
@@ -35,6 +37,8 @@ Rails.application.routes.draw do
 
   get   "ajustes" => "settings#index", as: :ajustes
   patch "ajustes" => "settings#update"
+
+  get "reportes" => "reportes#index", as: :reportes
 
   get "analisis"                 => "analisis#index",          as: :analisis
   get "analisis/orden-compra"    => "analisis#shopping_list",  as: :analisis_shopping_list, defaults: { format: :csv }

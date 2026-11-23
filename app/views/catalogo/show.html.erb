@@ -1,0 +1,46 @@
+<% content_for :title, "#{@kind_label} · Endémico POS" %>
+
+<div class="pos pos--catalog">
+  <%= render "shared/header", heading: @kind_label, active: :main, zone: :frontoffice %>
+
+  <div class="catalog-head">
+    <%= link_to "← volver a main", main_path, class: "catalog-back" %>
+    <h2 class="catalog-title"><%= @kind_label %></h2>
+    <p class="catalog-sub">Todo el catálogo agrupado por tipo</p>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
+  <% end %>
+
+  <% if @groups.empty? %>
+    <div class="pos-empty">
+      <p>Sin productos en <%= @kind_label.downcase %> todavía.</p>
+      <%= link_to "Agregar →", stock_path, class: "pos-empty-cta" %>
+    </div>
+  <% end %>
+
+  <div class="catalog-sections-wrap">
+    <% @groups.each do |subkind, products| %>
+      <section class="catalog-section">
+        <h3 class="catalog-section-title"><%= Product::SUBKIND_LABELS[subkind] || subkind.to_s.humanize %></h3>
+        <div class="pos-grid pos-grid--4">
+          <% products.each do |p| %>
+            <%= render "shared/product_card_db", product: p %>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+
+  <% if @order_items.any? %>
+    <%= link_to pedido_path, class: "pos-ticket" do %>
+      <span class="pos-ticket-count"><%= @order_items.sum(&:quantity) %></span>
+      <span class="pos-ticket-label">Ver pedido</span>
+      <strong class="pos-ticket-total">$<%= format("%.2f", @order.total) %></strong>
+    <% end %>
+  <% end %>
+</div>

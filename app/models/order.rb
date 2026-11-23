@@ -1,6 +1,6 @@
 class Order < ApplicationRecord
   STATUSES = %w[open completed cancelled].freeze
-  PAYMENT_METHODS = %w[efectivo tarjeta transferencia cortesía].freeze
+  PAYMENT_METHODS = %w[efectivo tarjeta transferencia dolares cortesía].freeze
 
   belongs_to :user
   has_many :order_items, -> { order(:id) }, dependent: :destroy, inverse_of: :order
@@ -15,7 +15,7 @@ class Order < ApplicationRecord
     update!(total: order_items.sum(:line_total))
   end
 
-  def complete!(payment_method: nil)
+  def complete!(payment_method: nil, usd_received: nil, usd_rate: nil)
     transaction do
       order_items.includes(
         :removed_ingredients,
@@ -30,8 +30,15 @@ class Order < ApplicationRecord
       end
       attrs = { status: "completed", completed_at: Time.current }
       attrs[:payment_method] = payment_method if payment_method.present?
+      attrs[:usd_received]   = usd_received   if usd_received.present?
+      attrs[:usd_rate]       = usd_rate       if usd_rate.present?
       update!(attrs)
     end
+  end
+
+  def usd_change_mxn
+    return nil unless usd_received.to_f.positive? && usd_rate.to_f.positive?
+    (usd_received.to_d * usd_rate.to_d) - total.to_d
   end
 
   private

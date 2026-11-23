@@ -15,14 +15,16 @@ class Setting < ApplicationRecord
     "clip_secret_key"          => "",
     "clip_serial_number"       => "",
     "clip_base_url"            => "https://api.payclip.io",
-    "clip_enabled"             => "false"
+    "clip_enabled"             => "false",
+    "usd_rate"                 => "18.00"
   }.freeze
 
   TYPED_KEYS = {
     "coverage_days"           => :integer,
     "alert_threshold_percent" => :integer,
     "ai_enabled"              => :boolean,
-    "clip_enabled"            => :boolean
+    "clip_enabled"            => :boolean,
+    "usd_rate"                => :decimal
   }.freeze
 
   def self.get(key)
@@ -47,6 +49,7 @@ class Setting < ApplicationRecord
     return nil if raw.nil?
     case TYPED_KEYS[key]
     when :integer then raw.to_i
+    when :decimal then BigDecimal(raw.to_s)
     when :boolean then ActiveModel::Type::Boolean.new.cast(raw)
     else raw
     end

@@ -1,0 +1,142 @@
+<% content_for :title, "Reportes · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Reportes", active: :reportes, zone: :backoffice %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <section class="rep-filters">
+    <%= form_with url: reportes_path, method: :get, local: true, class: "rep-filters-form" do %>
+      <label class="rep-filter">
+        <span>Desde</span>
+        <input type="date" name="from" value="<%= @from.to_date %>">
+      </label>
+      <label class="rep-filter">
+        <span>Hasta</span>
+        <input type="date" name="to" value="<%= @to.to_date %>">
+      </label>
+      <label class="rep-filter">
+        <span>Estado</span>
+        <select name="status">
+          <option value="">Todos</option>
+          <option value="completed" <%= "selected" if @status == "completed" %>>Completados</option>
+          <option value="cancelled" <%= "selected" if @status == "cancelled" %>>Cancelados</option>
+        </select>
+      </label>
+      <label class="rep-filter">
+        <span>Método</span>
+        <select name="method">
+          <option value="">Todos</option>
+          <% Order::PAYMENT_METHODS.each do |m| %>
+            <option value="<%= m %>" <%= "selected" if @method == m %>><%= m.capitalize %></option>
+          <% end %>
+        </select>
+      </label>
+      <label class="rep-filter">
+        <span>Barista</span>
+        <select name="user_id">
+          <option value="">Todos</option>
+          <% @users.each do |u| %>
+            <option value="<%= u.id %>" <%= "selected" if @user_id.to_s == u.id.to_s %>><%= u.name %></option>
+          <% end %>
+        </select>
+      </label>
+      <button type="submit" class="rep-filter-submit">Filtrar</button>
+      <%= link_to "Limpiar", reportes_path, class: "rep-filter-clear" %>
+    <% end %>
+  </section>
+
+  <section class="rep-summary">
+    <div class="rep-summary-card">
+      <span class="rep-summary-label">Movimientos</span>
+      <strong class="rep-summary-value"><%= @summary[:count] %></strong>
+      <small><%= @summary[:completed] %> cobrados · <%= @summary[:cancelled] %> cancelados</small>
+    </div>
+    <div class="rep-summary-card rep-summary-card--money">
+      <span class="rep-summary-label">Ingresos</span>
+      <strong class="rep-summary-value">$<%= format('%.2f', @summary[:revenue]) %></strong>
+      <small>Solo pedidos cobrados</small>
+    </div>
+    <div class="rep-summary-card">
+      <span class="rep-summary-label">Por método</span>
+      <ul class="rep-summary-list">
+        <% @summary[:by_method].each do |method, total| %>
+          <li><strong><%= method&.capitalize || "Sin registrar" %></strong> · $<%= format('%.2f', total) %></li>
+        <% end %>
+        <% if @summary[:by_method].empty? %><li class="rep-summary-empty">Sin datos</li><% end %>
+      </ul>
+    </div>
+    <div class="rep-summary-card">
+      <span class="rep-summary-label">Por barista</span>
+      <ul class="rep-summary-list">
+        <% @summary[:by_user].each do |name, total| %>
+          <li><strong><%= name %></strong> · $<%= format('%.2f', total) %></li>
+        <% end %>
+        <% if @summary[:by_user].empty? %><li class="rep-summary-empty">Sin datos</li><% end %>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rep-table-wrap">
+    <h2 class="rep-table-title">Movimientos <small>(últimos <%= ReportesController::PER_PAGE %>)</small></h2>
+    <% if @orders.any? %>
+      <table class="rep-table">
+        <thead>
+          <tr>
+            <th>Fecha / hora</th>
+            <th>Barista</th>
+            <th>Estado</th>
+            <th>Método</th>
+            <th>Productos</th>
+            <th class="rep-right">Total</th>
+            <th class="rep-right">USD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @orders.each do |o| %>
+            <tr class="rep-row rep-row--<%= o.status %>">
+              <td>
+                <%= l((o.completed_at || o.updated_at).to_time, format: :short) rescue (o.completed_at || o.updated_at).strftime("%d %b %H:%M") %>
+                <small class="rep-row-id">#<%= o.id %></small>
+              </td>
+              <td><%= o.user&.name || "—" %></td>
+              <td>
+                <span class="rep-badge rep-badge--<%= o.status %>">
+                  <%= o.status == "completed" ? "Cobrado" : "Cancelado" %>
+                </span>
+              </td>
+              <td><%= o.payment_method&.capitalize || "—" %></td>
+              <td class="rep-items">
+                <% o.order_items.each do |item| %>
+                  <div class="rep-item">
+                    <strong><%= item.quantity %>×</strong>
+                    <%= item.product&.name || "Producto eliminado" %>
+                    <% mods = item.modifier_lines rescue [] %>
+                    <% if mods.any? %>
+                      <span class="rep-item-mods"><%= mods.join(" · ") %></span>
+                    <% end %>
+                    <% if item.notes.present? %>
+                      <span class="rep-item-note">📝 <%= item.notes %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </td>
+              <td class="rep-right rep-total">$<%= format('%.2f', o.total) %></td>
+              <td class="rep-right rep-usd">
+                <% if o.usd_received.to_f.positive? %>
+                  $<%= format('%.2f', o.usd_received) %> USD
+                  <small>@ <%= format('%.2f', o.usd_rate.to_f) %> · cambio $<%= format('%.2f', o.usd_change_mxn.to_f) %></small>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="pos-empty"><p>Sin movimientos en el rango seleccionado.</p></div>
+    <% end %>
+  </section>
+</div>

@@ -1,0 +1,50 @@
+<dialog id="usd-pay" class="cmz usd-dialog" data-controller="usd" data-usd-total-value="<%= order.total.to_f %>" data-usd-rate-value="<%= usd_rate.to_f %>">
+  <%= form_with url: checkout_cart_path(payment_method: "dolares"), method: :post, local: true, class: "cmz-form" do %>
+    <%= hidden_field_tag :usd_rate, usd_rate %>
+
+    <header class="cmz-head">
+      <h2 class="cmz-title">Cobrar en dólares</h2>
+      <button type="button" class="cmz-close" onclick="document.getElementById('usd-pay').close()" aria-label="Cerrar">×</button>
+    </header>
+
+    <div class="cmz-body usd-body">
+      <div class="usd-row">
+        <span class="usd-row-label">Total a cobrar</span>
+        <strong class="usd-row-value">$<%= format('%.2f', order.total) %> MXN</strong>
+      </div>
+
+      <div class="usd-row">
+        <span class="usd-row-label">Tipo de cambio</span>
+        <strong class="usd-row-value"><%= format('%.2f', usd_rate) %> MXN / USD</strong>
+      </div>
+
+      <label class="usd-field">
+        <span>Dólares recibidos</span>
+        <input type="number"
+               step="0.01" min="0"
+               name="usd_received"
+               placeholder="0.00"
+               required
+               autofocus
+               data-usd-target="input"
+               data-action="input->usd#recalc">
+      </label>
+
+      <div class="usd-row usd-row--highlight">
+        <span class="usd-row-label">Equivalen a</span>
+        <strong class="usd-row-value" data-usd-target="mxnEquiv">$0.00 MXN</strong>
+      </div>
+
+      <div class="usd-row usd-row--change">
+        <span class="usd-row-label">Cambio en pesos</span>
+        <strong class="usd-row-value" data-usd-target="change">$0.00 MXN</strong>
+      </div>
+
+      <p class="usd-hint" data-usd-target="hint">Ingresa los dólares recibidos para calcular el cambio automáticamente.</p>
+    </div>
+
+    <footer class="cmz-foot usd-foot">
+      <button type="submit" class="auth-button usd-submit" data-usd-target="submit" disabled>Confirmar cobro</button>
+    </footer>
+  <% end %>
+</dialog>

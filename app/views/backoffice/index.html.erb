@@ -9,6 +9,9 @@
       path:  insumos_path,
       desc:  "#{@ingredients_count} insumos · stock, mínimos, precio por unidad" +
              (@alerts.positive? ? " · ⚠ #{@alerts} debajo del mínimo" : "") },
+    { label: "Reportes",
+      path:  reportes_path,
+      desc:  "Historial de cada venta · barista · método · hora · cancelaciones" },
     { label: "Análisis",
       path:  analisis_path,
       desc:  "Consumo por día · días restantes · orden de compra sugerida" },
@@ -25,15 +28,7 @@
 %>
 
 <div class="pos">
-  <header class="pos-top">
-    <div class="pos-brand">
-      <%= link_to "Endemico", main_path, class: "pos-brand-link" %>
-      <h1 class="pos-brand-title">Backoffice</h1>
-      <div class="pos-brand-rule"></div>
-    </div>
-
-    <%= render "shared/nav", active: :backoffice, zone: :backoffice %>
-  </header>
+  <%= render "shared/header", heading: "Backoffice", active: :backoffice, zone: :backoffice %>
 
   <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
   <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
