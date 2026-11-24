@@ -22,6 +22,10 @@ Rails.application.routes.draw do
   get  "corte" => "cortes#index", as: :corte
   post "corte/upload" => "cortes#upload_to_drive", as: :corte_upload
 
+  get  "caja"       => "cash_counts#index",  as: :cash_counts
+  get  "caja/nueva" => "cash_counts#new",    as: :new_cash_count
+  post "caja"       => "cash_counts#create"
+
   get "google_oauth/authorize" => "google_oauth#authorize", as: :google_oauth_authorize
   get "google_oauth/callback"  => "google_oauth#callback",  as: :google_oauth_callback
   delete "google_oauth"        => "google_oauth#destroy",   as: :google_oauth_disconnect
@@ -53,6 +57,7 @@ Rails.application.routes.draw do
     patch  "items/:id",     to: "carts#update_item", as: :item
     delete "items/:id",     to: "carts#remove_item"
     post   "checkout",      to: "carts#checkout"
+    patch  "name",          to: "carts#set_name",    as: :name
   end
 
   resource :clip_payment, only: [:create, :show, :destroy], controller: "clip_payments"

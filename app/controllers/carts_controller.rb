@@ -5,6 +5,12 @@ class CartsController < ApplicationController
     redirect_to main_path
   end
 
+  def set_name
+    name = params[:customer_name].to_s.strip.presence
+    @order.update(customer_name: name)
+    redirect_to main_path
+  end
+
   def add_item
     product = Product.find(params[:product_id])
     quantity = params[:quantity].to_i
@@ -90,6 +96,15 @@ class CartsController < ApplicationController
     method = nil unless Order::PAYMENT_METHODS.include?(method)
 
     extra = {}
+    if method == "efectivo" && params[:cash_received].present?
+      cash = params[:cash_received].to_s.gsub(",", ".").to_d rescue 0.to_d
+      if cash < @order.total.to_d
+        redirect_to pedido_path, alert: "Faltan $#{format('%.2f', (@order.total.to_d - cash))}: te dieron $#{format('%.2f', cash)} y el total es $#{format('%.2f', @order.total)}."
+        return
+      end
+      extra = { cash_received: cash }
+    end
+
     if method == "dolares"
       usd_received = params[:usd_received].to_s.gsub(",", ".").to_d rescue 0.to_d
       usd_rate     = (params[:usd_rate].presence&.to_s&.gsub(",", ".")&.to_d rescue nil) ||
@@ -111,6 +126,12 @@ class CartsController < ApplicationController
     notice = "Pedido cobrado: $#{format("%.2f", @order.total)}#{method ? " (#{method})" : ""}."
     if method == "dolares" && @order.usd_change_mxn
       notice += " Cambio: $#{format('%.2f', @order.usd_change_mxn)} MXN."
+    end
+    if method == "efectivo" && @order.cash_received
+      change = @order.cash_received.to_d - @order.total.to_d
+      if change > 0
+        notice += " Recibiste $#{format('%.2f', @order.cash_received)} · Cambio: $#{format('%.2f', change)}."
+      end
     end
     redirect_to main_path, notice: notice
   rescue ActiveRecord::RecordInvalid => e

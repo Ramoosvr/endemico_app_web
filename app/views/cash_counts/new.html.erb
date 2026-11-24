@@ -1,0 +1,63 @@
+<% content_for :title, "Corte de caja · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Caja", active: :caja, zone: :frontoffice %>
+
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="caja-wrap" data-controller="cash-count">
+    <div class="caja-switcher">
+      <%= link_to "Entrada",
+            new_cash_count_path(kind: "apertura"),
+            class: "caja-switch #{"caja-switch--active" if @kind == "apertura"}" %>
+      <%= link_to "Salida",
+            new_cash_count_path(kind: "cierre"),
+            class: "caja-switch #{"caja-switch--active" if @kind == "cierre"}" %>
+    </div>
+
+    <%= form_with model: @cash_count, url: cash_counts_path, local: true, class: "caja-form" do |f| %>
+      <%= f.hidden_field :kind, value: @kind %>
+
+      <header class="caja-head">
+        <h2>Corte de <%= @kind == "apertura" ? "entrada" : "salida" %></h2>
+        <p class="caja-head-hint">Escribe cuántas monedas o billetes hay de cada denominación.</p>
+      </header>
+
+      <% if @cash_count.errors.any? %>
+        <div class="pos-flash pos-flash--error">
+          <%= @cash_count.errors.full_messages.to_sentence %>
+        </div>
+      <% end %>
+
+      <div class="caja-grid">
+        <% CashCount::DENOMINATIONS.each do |denom| %>
+          <label class="caja-cell">
+            <span class="caja-cell-denom">$<%= denom %></span>
+            <%= f.number_field "d#{denom}",
+                  value: @cash_count.public_send("d#{denom}").to_i,
+                  min: 0,
+                  step: 1,
+                  inputmode: "numeric",
+                  placeholder: "0",
+                  class: "caja-cell-input",
+                  data: { denom: denom, cash_count_target: "input", action: "input->cash-count#recalc" } %>
+            <span class="caja-cell-sub" data-cash-count-target="subtotal" data-denom="<%= denom %>">$0</span>
+          </label>
+        <% end %>
+      </div>
+
+      <div class="caja-notes">
+        <%= f.label :notes, "Notas (opcional)", class: "caja-notes-label" %>
+        <%= f.text_area :notes, rows: 2, placeholder: "ej. falta llave de caja fuerte", class: "caja-notes-input" %>
+      </div>
+
+      <footer class="caja-foot">
+        <div class="caja-total">
+          <span>Total en caja</span>
+          <strong data-cash-count-target="total">$0.00</strong>
+        </div>
+        <%= f.submit "Guardar corte de #{@kind == "apertura" ? "entrada" : "salida"}", class: "auth-button caja-submit" %>
+      </footer>
+    <% end %>
+  </div>
+</div>

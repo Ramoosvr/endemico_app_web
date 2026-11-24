@@ -5,6 +5,7 @@ class Ingredient < ApplicationRecord
 
   has_many :product_ingredients, dependent: :destroy
   has_many :products, through: :product_ingredients
+  has_many :option_choice_ingredients, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :unit, presence: true, inclusion: { in: UNITS }

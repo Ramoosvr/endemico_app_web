@@ -3,19 +3,21 @@
   zone ||= :frontoffice
 
   front_links = [
-    [ "pedido",  pedido_path, :pedido ],
-    [ "corte",   corte_path,  :corte ],
-    [ "stock",   stock_path,  :stock ]
+    [ "pedido",  pedido_path,         :pedido ],
+    [ "caja",    new_cash_count_path, :caja ],
+    [ "corte",   corte_path,          :corte ]
   ]
+  front_links << [ "stock", insumos_path, :insumos ] if admin?
 
   back_links = [
-    [ "productos", stock_path,    :stock ],
-    [ "insumos",   insumos_path,  :insumos ],
-    [ "reportes",  reportes_path, :reportes ],
-    [ "análisis",  analisis_path, :analisis ],
-    [ "agente",    agente_path,   :agente ],
-    [ "ajustes",   ajustes_path,  :ajustes ],
-    [ "usuarios",  usuarios_path, :usuarios ]
+    [ "productos", stock_path,       :stock ],
+    [ "insumos",   insumos_path,     :insumos ],
+    [ "caja",      cash_counts_path, :caja ],
+    [ "reportes",  reportes_path,    :reportes ],
+    [ "análisis",  analisis_path,    :analisis ],
+    [ "agente",    agente_path,      :agente ],
+    [ "ajustes",   ajustes_path,     :ajustes ],
+    [ "usuarios",  usuarios_path,    :usuarios ]
   ]
 
   links =

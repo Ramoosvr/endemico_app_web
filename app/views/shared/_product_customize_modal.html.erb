@@ -12,75 +12,14 @@
       <% defaults = product.product_ingredients.select { |pi| pi.default_included } %>
       <% extras   = product.product_ingredients.reject { |pi| pi.default_included } %>
 
-      <% if defaults.any? %>
-        <section class="cmz-section">
-          <h3 class="cmz-section-title">Incluye</h3>
-          <ul class="cmz-list">
-            <% defaults.each do |pi| %>
-              <li class="cmz-item">
-                <label class="cmz-check">
-                  <input type="checkbox" checked
-                         data-action="change->customize#toggleRemove"
-                         data-remove-id="<%= pi.ingredient_id %>">
-                  <span class="cmz-item-name"><%= pi.ingredient.name %></span>
-                </label>
-                <input type="hidden" name="remove_ingredient_ids[]" value="" data-remove-hidden="<%= pi.ingredient_id %>">
-                <% if pi.extra_price.to_f > 0 %>
-                  <label class="cmz-check cmz-check-sub">
-                    <input type="checkbox"
-                           name="extra_product_ingredient_ids[]"
-                           value="<%= pi.id %>"
-                           data-action="change->customize#recalc"
-                           data-extra-price="<%= pi.extra_price.to_f %>">
-                    <span class="cmz-item-name">+ <%= pi.ingredient.name %> extra</span>
-                    <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
-                  </label>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-          <p class="cmz-hint">Desmarca para quitar del pedido.</p>
-        </section>
-      <% end %>
-
-      <% if extras.any? %>
-        <section class="cmz-section">
-          <h3 class="cmz-section-title">Extras</h3>
-          <ul class="cmz-list">
-            <% extras.each do |pi| %>
-              <li class="cmz-item">
-                <label class="cmz-check">
-                  <input type="checkbox"
-                         name="extra_product_ingredient_ids[]"
-                         value="<%= pi.id %>"
-                         data-action="change->customize#recalc"
-                         data-extra-price="<%= pi.extra_price.to_f %>">
-                  <span class="cmz-item-name"><%= pi.ingredient.name %></span>
-                  <% if pi.extra_price.to_f > 0 %>
-                    <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
-                  <% end %>
-                </label>
-              </li>
-            <% end %>
-          </ul>
-        </section>
-      <% end %>
-
-      <section class="cmz-section">
-        <h3 class="cmz-section-title">Comentarios</h3>
-        <%= text_area_tag :notes, nil,
-              rows: 2,
-              placeholder: "ej. sin cebolla, bien tostado, para llevar…",
-              class: "cmz-notes" %>
-      </section>
-
+      <%# Required single-choice option groups first (Temperatura, Leche, Shots, Endulzante) %>
       <% product.option_groups.each do |og| %>
         <section class="cmz-section">
           <h3 class="cmz-section-title">
             <%= og.name %>
             <% if og.required %><span class="cmz-req">obligatorio</span><% end %>
           </h3>
-          <ul class="cmz-list">
+          <ul class="cmz-list <%= og.single? ? 'cmz-list--chips' : '' %>">
             <% og.option_choices.each do |oc| %>
               <li class="cmz-item">
                 <label class="cmz-check">
@@ -91,8 +30,7 @@
                            data-choice-id="<%= oc.id %>"
                            data-extra-price="<%= oc.extra_price.to_f %>"
                            data-action="change->customize#selectSingle"
-                           <%= "checked" if oc.default_selected %>
-                           <%= "required" if og.required %>>
+                           <%= "checked" if oc.default_selected %>>
                   <% else %>
                     <input type="checkbox"
                            name="option_choice_ids[]"
@@ -114,6 +52,69 @@
           <% end %>
         </section>
       <% end %>
+
+      <% if extras.any? %>
+        <section class="cmz-section">
+          <h3 class="cmz-section-title">Extras</h3>
+          <ul class="cmz-list cmz-list--chips">
+            <% extras.each do |pi| %>
+              <li class="cmz-item">
+                <label class="cmz-check">
+                  <input type="checkbox"
+                         name="extra_product_ingredient_ids[]"
+                         value="<%= pi.id %>"
+                         data-action="change->customize#recalc"
+                         data-extra-price="<%= pi.extra_price.to_f %>">
+                  <span class="cmz-item-name"><%= pi.ingredient.name %></span>
+                  <% if pi.extra_price.to_f > 0 %>
+                    <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
+                  <% end %>
+                </label>
+              </li>
+            <% end %>
+          </ul>
+        </section>
+      <% end %>
+
+      <% if defaults.any? %>
+        <section class="cmz-section">
+          <h3 class="cmz-section-title">Incluye <span class="cmz-hint-inline">· desmarca para quitar</span></h3>
+          <ul class="cmz-list cmz-list--chips">
+            <% defaults.each do |pi| %>
+              <li class="cmz-item">
+                <label class="cmz-check">
+                  <input type="checkbox" checked
+                         data-action="change->customize#toggleRemove"
+                         data-remove-id="<%= pi.ingredient_id %>">
+                  <span class="cmz-item-name"><%= pi.ingredient.name %></span>
+                </label>
+                <input type="hidden" name="remove_ingredient_ids[]" value="" data-remove-hidden="<%= pi.ingredient_id %>">
+                <% if pi.extra_price.to_f > 0 %>
+                  <label class="cmz-check cmz-check-sub">
+                    <input type="checkbox"
+                           name="extra_product_ingredient_ids[]"
+                           value="<%= pi.id %>"
+                           data-action="change->customize#recalc"
+                           data-extra-price="<%= pi.extra_price.to_f %>">
+                    <span class="cmz-item-name">+ extra</span>
+                    <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
+                  </label>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </section>
+      <% end %>
+
+      <section class="cmz-section cmz-notes-section">
+        <details class="cmz-notes-details">
+          <summary class="cmz-notes-summary">+ Agregar comentario</summary>
+          <%= text_area_tag :notes, nil,
+                rows: 2,
+                placeholder: "ej. sin azúcar, para llevar…",
+                class: "cmz-notes" %>
+        </details>
+      </section>
     </div>
 
     <footer class="cmz-foot">

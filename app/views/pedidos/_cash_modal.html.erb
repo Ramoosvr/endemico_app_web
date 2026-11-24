@@ -1,0 +1,41 @@
+<dialog id="cash-pay" class="cmz cash-dialog" data-controller="cash" data-cash-total-value="<%= order.total.to_f %>">
+  <%= form_with url: checkout_cart_path(payment_method: "efectivo"), method: :post, local: true, class: "cmz-form" do %>
+    <header class="cmz-head">
+      <h2 class="cmz-title">Cobrar en efectivo</h2>
+      <button type="button" class="cmz-close" onclick="document.getElementById('cash-pay').close()" aria-label="Cerrar">×</button>
+    </header>
+
+    <div class="cmz-body cash-body">
+      <div class="cash-row">
+        <span class="cash-row-label">Total a cobrar</span>
+        <strong class="cash-row-value">$<%= format('%.2f', order.total) %></strong>
+      </div>
+
+      <label class="cash-field">
+        <span>¿Con cuánto paga?</span>
+        <input type="number"
+               step="0.01" min="0"
+               name="cash_received"
+               placeholder="0.00"
+               inputmode="decimal"
+               required
+               autofocus
+               data-cash-target="input"
+               data-action="input->cash#recalc">
+      </label>
+
+      <div class="cash-quick" data-cash-target="quick"></div>
+
+      <div class="cash-row cash-row--change">
+        <span class="cash-row-label">Cambio</span>
+        <strong class="cash-row-value" data-cash-target="change">$0.00</strong>
+      </div>
+
+      <p class="cash-hint" data-cash-target="hint">Ingresa el monto recibido para calcular el cambio.</p>
+    </div>
+
+    <footer class="cmz-foot cash-foot">
+      <button type="submit" class="auth-button cash-submit" data-cash-target="submit" disabled>Confirmar cobro</button>
+    </footer>
+  <% end %>
+</dialog>

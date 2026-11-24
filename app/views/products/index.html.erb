@@ -1,7 +1,7 @@
-<% content_for :title, "Stock · Endémico" %>
+<% content_for :title, "Productos · Endémico" %>
 
 <div class="pos">
-  <%= render "shared/header", heading: "Stock", active: :stock, zone: :frontoffice %>
+  <%= render "shared/header", heading: "Productos", active: :stock, zone: :backoffice %>
 
   <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
   <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
@@ -17,7 +17,7 @@
 
     <section class="stock-main">
       <div class="stock-main-head">
-        <h2 class="stock-main-title">Inventario</h2>
+        <h2 class="stock-main-title">Catálogo de productos</h2>
         <div class="stock-main-meta">
           <span><strong><%= @products.size %></strong> productos</span>
           <span class="stock-main-sep">·</span>

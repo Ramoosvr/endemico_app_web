@@ -10,6 +10,35 @@
     <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
   <% end %>
 
+  <% if @order.customer_name.present? %>
+    <div class="pos-order-name">
+      <span>Pedido para</span>
+      <strong><%= @order.customer_name %></strong>
+      <button type="button" class="pos-order-name-edit" onclick="document.getElementById('customer-name-dialog').showModal()">cambiar</button>
+    </div>
+  <% end %>
+
+  <dialog id="customer-name-dialog" class="cmz cname-dialog" <%= "open" if @order.customer_name.blank? && @order_items.empty? %>>
+    <%= form_with url: name_cart_path, method: :patch, local: true, class: "cmz-form cname-form" do %>
+      <header class="cmz-head">
+        <h2 class="cmz-title">Nuevo pedido</h2>
+      </header>
+      <div class="cmz-body cname-body">
+        <label class="cname-label" for="customer_name_input">¿A nombre de quién?</label>
+        <input id="customer_name_input"
+               type="text"
+               name="customer_name"
+               value="<%= @order.customer_name %>"
+               placeholder="ej. María"
+               autofocus
+               class="cname-input" />
+      </div>
+      <footer class="cmz-foot cname-foot">
+        <button type="submit" class="auth-button cname-submit">Comenzar pedido</button>
+      </footer>
+    <% end %>
+  </dialog>
+
   <div class="pos-columns">
     <section class="pos-section">
       <%= link_to catalogo_path("bebida"), class: "pos-section-btn" do %>
@@ -17,9 +46,16 @@
         <span class="pos-section-btn-arrow">→</span>
       <% end %>
       <% if @bebidas.any? %>
-        <div class="pos-grid">
-          <% @bebidas.each do |p| %>
-            <%= render "shared/product_card_db", product: p %>
+        <div class="pos-subgroups">
+          <% @bebidas_by_subkind.each do |sub, products| %>
+            <div class="pos-subgroup">
+              <h3 class="pos-subgroup-title"><%= Product::SUBKIND_LABELS[sub] || "Otros" %></h3>
+              <div class="pos-grid">
+                <% products.each do |p| %>
+                  <%= render "shared/product_card_db", product: p %>
+                <% end %>
+              </div>
+            </div>
           <% end %>
         </div>
       <% else %>

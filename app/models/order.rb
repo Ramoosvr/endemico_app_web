@@ -15,11 +15,12 @@ class Order < ApplicationRecord
     update!(total: order_items.sum(:line_total))
   end
 
-  def complete!(payment_method: nil, usd_received: nil, usd_rate: nil)
+  def complete!(payment_method: nil, usd_received: nil, usd_rate: nil, cash_received: nil)
     transaction do
       order_items.includes(
         :removed_ingredients,
         :extras,
+        chosen_options: { option_choice: :option_choice_ingredients },
         product: { product_ingredients: :ingredient }
       ).each do |item|
         product = item.product
@@ -32,6 +33,7 @@ class Order < ApplicationRecord
       attrs[:payment_method] = payment_method if payment_method.present?
       attrs[:usd_received]   = usd_received   if usd_received.present?
       attrs[:usd_rate]       = usd_rate       if usd_rate.present?
+      attrs[:cash_received]  = cash_received  if cash_received.present?
       update!(attrs)
     end
   end
@@ -60,6 +62,13 @@ class Order < ApplicationRecord
         consumed[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
       elsif extra_ids.include?(pi.ingredient_id)
         consumed[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
+      end
+    end
+
+    item.chosen_options.each do |cop|
+      cop.option_choice.option_choice_ingredients.each do |oci|
+        next if oci.quantity_per_unit.to_d.zero?
+        consumed[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty
       end
     end
 

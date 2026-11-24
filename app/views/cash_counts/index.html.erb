@@ -1,0 +1,57 @@
+<% content_for :title, "Cortes de caja · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Cortes de caja", active: :caja, zone: :backoffice %>
+
+  <div class="caja-wrap">
+    <section class="caja-today">
+      <h3>Hoy</h3>
+      <div class="caja-today-grid">
+        <div>
+          <h4>Entradas</h4>
+          <% if @today_aperturas.any? %>
+            <ul class="caja-today-list">
+              <% @today_aperturas.each do |c| %>
+                <li><strong><%= c.user.name %></strong> · $<%= format("%.2f", c.total) %> · <%= c.created_at.strftime("%d/%m %H:%M") %></li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="caja-empty">Sin entradas registradas.</p>
+          <% end %>
+        </div>
+        <div>
+          <h4>Salidas</h4>
+          <% if @today_cierres.any? %>
+            <ul class="caja-today-list">
+              <% @today_cierres.each do |c| %>
+                <li><strong><%= c.user.name %></strong> · $<%= format("%.2f", c.total) %> · <%= c.created_at.strftime("%d/%m %H:%M") %></li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="caja-empty">Sin salidas registradas.</p>
+          <% end %>
+        </div>
+      </div>
+    </section>
+
+    <section class="caja-history">
+      <h3>Historial (últimos 100)</h3>
+      <table class="caja-table">
+        <thead>
+          <tr><th>Fecha</th><th>Cajero</th><th>Tipo</th><th>Total</th><th>Notas</th></tr>
+        </thead>
+        <tbody>
+          <% @counts.each do |c| %>
+            <tr>
+              <td><%= c.created_at.strftime("%d/%m %H:%M") %></td>
+              <td><%= c.user.name %></td>
+              <td><%= c.kind_label %></td>
+              <td>$<%= format("%.2f", c.total) %></td>
+              <td><%= c.notes %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>

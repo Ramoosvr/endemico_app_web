@@ -62,9 +62,8 @@
         usd_rate = Setting.get(:usd_rate) || BigDecimal("18")
       %>
       <div class="ped-foot-pay">
-        <%= button_to "💵 Efectivo", checkout_cart_path(payment_method: "efectivo"),
-              method: :post, class: "cart-pay-btn cart-pay-btn--cash cart-pay-btn--lg",
-              form: { data: { turbo_confirm: "¿Cobrar en efectivo $#{format('%.2f', @order.total)}?" } } %>
+        <button type="button" class="cart-pay-btn cart-pay-btn--cash cart-pay-btn--lg"
+                onclick="document.getElementById('cash-pay').showModal()">💵 Efectivo</button>
         <%= button_to "💳 Tarjeta#{clip_on ? ' (Clip)' : ''}", clip_path,
               method: :post, class: "cart-pay-btn cart-pay-btn--card cart-pay-btn--lg",
               form: { data: { turbo_confirm: clip_confirm } } %>
@@ -76,6 +75,7 @@
       </div>
     </footer>
 
+    <%= render "cash_modal", order: @order %>
     <%= render "usd_modal", order: @order, usd_rate: usd_rate %>
   <% else %>
     <div class="ped-empty">

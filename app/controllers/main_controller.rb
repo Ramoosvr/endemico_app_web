@@ -1,10 +1,15 @@
 class MainController < ApplicationController
-  FEATURED_LIMIT = 4
+  FEATURED_LIMIT = 50
+
+  BEBIDA_SUBKIND_ORDER = %w[cafe_negro cafe_con_leche frios chai otro].freeze
 
   def index
     includes = [:product_ingredients, { option_groups: :option_choices }]
 
     @bebidas = featured_or_fallback("bebida", includes)
+    @bebidas_by_subkind = @bebidas
+                           .group_by { |p| p.subkind.presence || "otro" }
+                           .sort_by { |sub, _| BEBIDA_SUBKIND_ORDER.index(sub) || 99 }
     @comida  = featured_or_fallback("comida", includes)
     @postres = featured_or_fallback("postre", includes)
 
