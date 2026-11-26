@@ -14,6 +14,15 @@
     <%= f.select :kind, Product::KINDS.map { |k| [k.capitalize, k] }, { prompt: "—" }, class: "pform-input", required: true %>
   </div>
 
+  <div class="pform-field">
+    <%= f.label :subkind, "Subcategoría (bebidas)", class: "pform-label" %>
+    <%= f.select :subkind,
+          Product::SUBKINDS["bebida"].map { |s| [Product::SUBKIND_LABELS[s] || s.humanize, s] },
+          { include_blank: "—" },
+          class: "pform-input" %>
+    <p class="pform-hint">Solo aplica a bebidas. Define cómo se agrupan en la vista principal.</p>
+  </div>
+
   <div class="pform-grid">
     <div class="pform-field">
       <%= f.label :cost, "Costo", class: "pform-label" %>
