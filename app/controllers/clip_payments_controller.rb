@@ -24,8 +24,10 @@ class ClipPaymentsController < ApplicationController
     )
     redirect_to clip_payment_path
   rescue ClipPinpad::NotConfigured => e
+    Rails.logger.warn("[Clip] not configured: #{e.message}")
     redirect_to ajustes_path, alert: e.message
   rescue ClipPinpad::APIError => e
+    Rails.logger.warn("[Clip] create error: status=#{e.status} body=#{e.body.inspect}")
     redirect_to main_path, alert: "Clip: #{e.message}"
   end
 

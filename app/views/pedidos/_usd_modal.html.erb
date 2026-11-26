@@ -1,3 +1,5 @@
+<% usd_due = usd_rate.to_f > 0 ? (order.total.to_f / usd_rate.to_f) : 0 %>
+
 <dialog id="usd-pay" class="cmz usd-dialog" data-controller="usd" data-usd-total-value="<%= order.total.to_f %>" data-usd-rate-value="<%= usd_rate.to_f %>">
   <%= form_with url: checkout_cart_path(payment_method: "dolares"), method: :post, local: true, class: "cmz-form" do %>
     <%= hidden_field_tag :usd_rate, usd_rate %>
@@ -8,39 +10,39 @@
     </header>
 
     <div class="cmz-body usd-body">
-      <div class="usd-row">
-        <span class="usd-row-label">Total a cobrar</span>
-        <strong class="usd-row-value">$<%= format('%.2f', order.total) %> MXN</strong>
-      </div>
-
-      <div class="usd-row">
-        <span class="usd-row-label">Tipo de cambio</span>
-        <strong class="usd-row-value"><%= format('%.2f', usd_rate) %> MXN / USD</strong>
+      <div class="usd-due">
+        <span class="usd-due-label">Pide</span>
+        <strong class="usd-due-amount">$<%= format('%.2f', usd_due) %> <small>USD</small></strong>
+        <span class="usd-due-sub">
+          Total $<%= format('%.2f', order.total) %> MXN · Tipo de cambio <%= format('%.2f', usd_rate) %>
+        </span>
       </div>
 
       <label class="usd-field">
-        <span>Dólares recibidos</span>
-        <input type="number"
-               step="0.01" min="0"
-               name="usd_received"
-               placeholder="0.00"
-               required
-               autofocus
-               data-usd-target="input"
-               data-action="input->usd#recalc">
+        <span>¿Con cuántos USD pagó?</span>
+        <div class="usd-input-wrap">
+          <em>$</em>
+          <input type="number"
+                 step="0.01" min="0"
+                 name="usd_received"
+                 placeholder="0.00"
+                 inputmode="decimal"
+                 required
+                 autofocus
+                 data-usd-target="input"
+                 data-action="input->usd#recalc">
+          <span>USD</span>
+        </div>
       </label>
 
-      <div class="usd-row usd-row--highlight">
-        <span class="usd-row-label">Equivalen a</span>
-        <strong class="usd-row-value" data-usd-target="mxnEquiv">$0.00 MXN</strong>
-      </div>
+      <div class="usd-quick" data-usd-target="quick"></div>
 
       <div class="usd-row usd-row--change">
-        <span class="usd-row-label">Cambio en pesos</span>
+        <span class="usd-row-label">Cambio</span>
         <strong class="usd-row-value" data-usd-target="change">$0.00 MXN</strong>
       </div>
 
-      <p class="usd-hint" data-usd-target="hint">Ingresa los dólares recibidos para calcular el cambio automáticamente.</p>
+      <p class="usd-hint" data-usd-target="hint">Ingresa los dólares recibidos para calcular el cambio.</p>
     </div>
 
     <footer class="cmz-foot usd-foot">

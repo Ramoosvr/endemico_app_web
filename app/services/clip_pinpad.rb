@@ -15,10 +15,10 @@ class ClipPinpad
   end
 
   def initialize
-    @token  = Setting.get(:clip_api_token).to_s
-    @secret = Setting.get(:clip_secret_key).to_s
-    @serial = Setting.get(:clip_serial_number).to_s
-    @base   = Setting.get(:clip_base_url).to_s.presence || "https://api.payclip.io"
+    @token  = Setting.get(:clip_api_token).to_s.strip
+    @secret = Setting.get(:clip_secret_key).to_s.strip
+    @serial = Setting.get(:clip_serial_number).to_s.strip
+    @base   = Setting.get(:clip_base_url).to_s.strip.presence || "https://api.payclip.io"
   end
 
   def test_mode?
@@ -78,7 +78,12 @@ class ClipPinpad
   private
 
   def ensure_configured!
-    raise NotConfigured, "Faltan API key, clave secreta o número de serie en Ajustes." unless configured?
+    return if configured?
+    missing = []
+    missing << "API key"      if @token.blank?
+    missing << "Secret key"   if @secret.blank?
+    missing << "N° de serie"  if @serial.blank?
+    raise NotConfigured, "Faltan datos de Clip en Ajustes: #{missing.join(", ")}."
   end
 
   def request(method, path, body: nil, query: nil)
@@ -92,7 +97,7 @@ class ClipPinpad
           else raise ArgumentError, "método no soportado: #{method}"
           end
 
-    req["Authorization"] = "Basic #{Base64.strict_encode64("#{@token}:#{@secret}")}"
+    req["Authorization"] = "Basic " + Base64.strict_encode64("#{@token}:#{@secret}")
     req["Content-Type"] = "application/json" if body
     req["Accept"] = "application/json"
     req.body = body.to_json if body

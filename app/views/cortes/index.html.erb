@@ -45,17 +45,30 @@
   <div class="corte-datebar">
     <%= form_with url: corte_path, method: :get, local: true, class: "corte-datefilter" do %>
       <%= hidden_field_tag :period, @period %>
+      <%= hidden_field_tag :user_id, @selected_user_id if @selected_user_id %>
       <button type="submit" name="date" value="<%= @prev_date.iso8601 %>" class="corte-nav">‹</button>
       <input type="date" name="date" value="<%= @date.iso8601 %>" onchange="this.form.submit()" class="corte-date">
       <% if @date != Date.current %>
         <button type="submit" name="date" value="<%= @next_date.iso8601 %>" class="corte-nav">›</button>
-        <%= link_to "hoy", corte_path(period: @period), class: "corte-today" %>
+        <%= link_to "hoy", corte_path(period: @period, user_id: @selected_user_id), class: "corte-today" %>
       <% else %>
         <span class="corte-today corte-today--inert">hoy</span>
       <% end %>
     <% end %>
     <div class="corte-datelabel"><%= range_label %></div>
   </div>
+
+  <% if @all_users_in_range.any? %>
+    <div class="corte-userbar">
+      <span class="corte-userbar-label">Cajero:</span>
+      <%= link_to "Todos", corte_path(period: @period, date: @date.iso8601),
+            class: "corte-user-tab #{"corte-user-tab--active" if @selected_user_id.blank?}" %>
+      <% @all_users_in_range.each do |u| %>
+        <%= link_to u.name, corte_path(period: @period, date: @date.iso8601, user_id: u.id),
+              class: "corte-user-tab #{"corte-user-tab--active" if @selected_user_id.to_i == u.id}" %>
+      <% end %>
+    </div>
+  <% end %>
 
   <% if @orders.any? %>
     <section class="corte-metrics">
@@ -87,6 +100,16 @@
           <div><em>postre</em><strong>$<%= format("%.2f", @by_kind["postre"] || 0) %></strong></div>
         </div>
       </div>
+      <% if @by_user.size > 1 %>
+        <div class="corte-metric corte-metric--split">
+          <span class="corte-metric-label">por cajero</span>
+          <div class="corte-split">
+            <% @by_user.each do |row| %>
+              <div><em><%= row[:name] %></em><strong>$<%= format("%.2f", row[:revenue]) %></strong><small><%= row[:orders] %> pedidos</small></div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </section>
 
     <% if @daily_breakdown.present? %>

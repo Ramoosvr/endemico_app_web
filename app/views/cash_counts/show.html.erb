@@ -1,0 +1,61 @@
+<% content_for :title, "Corte ##{@cash_count.id} · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Corte", active: :caja, zone: :frontoffice %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+
+  <div class="caja-wrap">
+    <div class="caja-detail">
+      <header class="caja-detail-head">
+        <h2><%= @cash_count.kind_label %> · <%= @cash_count.shift_label %></h2>
+        <p class="caja-detail-sub"><%= @cash_count.user.name %> · <%= @cash_count.created_at.strftime("%d/%m/%Y %H:%M") %></p>
+      </header>
+
+      <section class="caja-detail-section">
+        <h3>Efectivo contado</h3>
+        <ul class="caja-detail-denoms">
+          <% CashCount::DENOMINATIONS.each do |d| %>
+            <% qty = @cash_count.public_send("d#{d}").to_i %>
+            <% next if qty.zero? %>
+            <li><strong>$<%= d %></strong> × <%= qty %> = <span>$<%= format('%.2f', qty * d) %></span></li>
+          <% end %>
+        </ul>
+        <div class="caja-detail-total">Total efectivo: <strong>$<%= format('%.2f', @cash_count.total) %></strong></div>
+      </section>
+
+      <% if @cash_count.kind == "cierre" %>
+        <section class="caja-detail-section">
+          <h3>Montos vendidos</h3>
+          <dl class="caja-detail-sold">
+            <div><dt>Efectivo</dt><dd>$<%= format('%.2f', @cash_count.sold_cash || 0) %></dd></div>
+            <div><dt>Tarjeta</dt><dd>$<%= format('%.2f', @cash_count.sold_card || 0) %></dd></div>
+            <div><dt>Dólares</dt><dd>$<%= format('%.2f', @cash_count.sold_usd || 0) %></dd></div>
+            <div><dt>Transferencia</dt><dd>$<%= format('%.2f', @cash_count.sold_transfer || 0) %></dd></div>
+          </dl>
+          <% if @sales %>
+            <h4 class="caja-detail-syshead">Según sistema</h4>
+            <dl class="caja-detail-sold caja-detail-sold--sys">
+              <div><dt>Efectivo</dt><dd>$<%= format('%.2f', @sales[:efectivo] || 0) %></dd></div>
+              <div><dt>Tarjeta</dt><dd>$<%= format('%.2f', @sales[:tarjeta] || 0) %></dd></div>
+              <div><dt>Dólares</dt><dd>$<%= format('%.2f', @sales[:dolares] || 0) %></dd></div>
+              <div><dt>Transferencia</dt><dd>$<%= format('%.2f', @sales[:transferencia] || 0) %></dd></div>
+            </dl>
+          <% end %>
+        </section>
+      <% end %>
+
+      <% if @cash_count.notes.present? %>
+        <section class="caja-detail-section">
+          <h3>Notas</h3>
+          <p class="caja-detail-notes"><%= @cash_count.notes %></p>
+        </section>
+      <% end %>
+
+      <div class="caja-detail-actions">
+        <%= link_to "← Nuevo corte", new_cash_count_path, class: "caja-detail-back" %>
+        <%= link_to "📋 Historial", cash_counts_path, class: "caja-detail-back" %>
+      </div>
+    </div>
+  </div>
+</div>

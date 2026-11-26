@@ -16,33 +16,41 @@
       <% if @ingredients.empty? %>
         <p class="pos-empty">Sin insumos. Crea uno en el panel de la derecha.</p>
       <% else %>
-        <ul class="insumo-grid">
-          <% @ingredients.each do |ing| %>
-            <li class="insumo-card <%= 'insumo-card--low' if ing.below_min? %>">
-              <header class="insumo-head">
-                <strong><%= ing.name %></strong>
-                <span class="insumo-unit"><%= ing.unit %></span>
-              </header>
-              <dl class="insumo-meta">
-                <div><dt>stock</dt><dd><%= ing.stock.to_f %> <%= ing.unit %></dd></div>
-                <div><dt>mínimo</dt><dd><%= ing.min_stock.to_f %> <%= ing.unit %></dd></div>
-                <div><dt>precio</dt><dd>$<%= format("%.2f", ing.cost_per_unit) %>/<%= ing.unit %></dd></div>
-                <% if ing.supplier.present? %>
-                  <div><dt>proveedor</dt><dd><%= ing.supplier %></dd></div>
-                <% end %>
-              </dl>
-              <% if ing.below_min? %>
-                <div class="insumo-alert">⚠ Debajo del mínimo</div>
+        <% @ingredients_by_category.each do |cat, items| %>
+          <div class="insumo-section">
+            <div class="insumo-section-head">
+              <h3><%= Ingredient::CATEGORY_LABELS[cat] || "Otros" %></h3>
+              <span><%= items.size %></span>
+            </div>
+            <ul class="insumo-grid">
+              <% items.each do |ing| %>
+                <li class="insumo-card <%= 'insumo-card--low' if ing.below_min? %>">
+                  <header class="insumo-head">
+                    <strong><%= ing.name %></strong>
+                    <span class="insumo-unit"><%= ing.unit %></span>
+                  </header>
+                  <dl class="insumo-meta">
+                    <div><dt>stock</dt><dd><%= ing.stock.to_f %> <%= ing.unit %></dd></div>
+                    <div><dt>mínimo</dt><dd><%= ing.min_stock.to_f %> <%= ing.unit %></dd></div>
+                    <div><dt>precio</dt><dd>$<%= format("%.2f", ing.cost_per_unit) %>/<%= ing.unit %></dd></div>
+                    <% if ing.supplier.present? %>
+                      <div><dt>proveedor</dt><dd><%= ing.supplier %></dd></div>
+                    <% end %>
+                  </dl>
+                  <% if ing.below_min? %>
+                    <div class="insumo-alert">⚠ Debajo del mínimo</div>
+                  <% end %>
+                  <footer class="insumo-actions">
+                    <%= link_to "editar", edit_ingredient_path(ing), class: "insumo-btn" %>
+                    <%= button_to "eliminar", ingredient_path(ing), method: :delete,
+                          class: "insumo-btn insumo-btn--danger",
+                          data: { turbo_confirm: "¿Eliminar #{ing.name}? Se borra de todas las recetas." } %>
+                  </footer>
+                </li>
               <% end %>
-              <footer class="insumo-actions">
-                <%= link_to "editar", edit_ingredient_path(ing), class: "insumo-btn" %>
-                <%= button_to "eliminar", ingredient_path(ing), method: :delete,
-                      class: "insumo-btn insumo-btn--danger",
-                      data: { turbo_confirm: "¿Eliminar #{ing.name}? Se borra de todas las recetas." } %>
-              </footer>
-            </li>
-          <% end %>
-        </ul>
+            </ul>
+          </div>
+        <% end %>
       <% end %>
     </section>
 

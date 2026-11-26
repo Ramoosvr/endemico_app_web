@@ -65,11 +65,9 @@
         <button type="button" class="cart-pay-btn cart-pay-btn--cash cart-pay-btn--lg"
                 onclick="document.getElementById('cash-pay').showModal()">💵 Efectivo</button>
         <%= button_to "💳 Tarjeta#{clip_on ? ' (Clip)' : ''}", clip_path,
-              method: :post, class: "cart-pay-btn cart-pay-btn--card cart-pay-btn--lg",
-              form: { data: { turbo_confirm: clip_confirm } } %>
+              method: :post, class: "cart-pay-btn cart-pay-btn--card cart-pay-btn--lg" %>
         <%= button_to "📱 Transferencia", checkout_cart_path(payment_method: "transferencia"),
-              method: :post, class: "cart-pay-btn cart-pay-btn--transfer cart-pay-btn--lg",
-              form: { data: { turbo_confirm: "¿Cobrar por transferencia $#{format('%.2f', @order.total)}?" } } %>
+              method: :post, class: "cart-pay-btn cart-pay-btn--transfer cart-pay-btn--lg" %>
         <button type="button" class="cart-pay-btn cart-pay-btn--usd cart-pay-btn--lg"
                 onclick="document.getElementById('usd-pay').showModal()">💲 Dólares</button>
       </div>

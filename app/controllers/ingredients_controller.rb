@@ -6,7 +6,9 @@ class IngredientsController < ApplicationController
     respond_to do |format|
       format.html do
         @ingredients = Ingredient.ordered
-        @new_ingredient = Ingredient.new(unit: "pza")
+        @ingredients_by_category = @ingredients.group_by { |i| i.category.presence || "otros" }
+          .sort_by { |cat, _| Ingredient::CATEGORIES.index(cat) || 99 }
+        @new_ingredient = Ingredient.new(unit: "pza", category: "otros")
       end
       format.json do
         render json: Ingredient.ordered.select(:id, :name)
@@ -38,6 +40,8 @@ class IngredientsController < ApplicationController
       redirect_to ingredients_path, notice: "Insumo creado."
     else
       @ingredients = Ingredient.ordered
+      @ingredients_by_category = @ingredients.group_by { |i| i.category.presence || "otros" }
+        .sort_by { |cat, _| Ingredient::CATEGORIES.index(cat) || 99 }
       @new_ingredient = @ingredient
       render :index, status: :unprocessable_entity
     end
@@ -66,6 +70,6 @@ class IngredientsController < ApplicationController
   end
 
   def ingredient_params
-    params.require(:ingredient).permit(:name, :unit, :stock, :min_stock, :cost_per_unit, :supplier)
+    params.require(:ingredient).permit(:name, :unit, :stock, :min_stock, :cost_per_unit, :supplier, :category)
   end
 end

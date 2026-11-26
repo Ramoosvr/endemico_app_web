@@ -8,20 +8,31 @@
   <div class="caja-wrap" data-controller="cash-count">
     <div class="caja-switcher">
       <%= link_to "Entrada",
-            new_cash_count_path(kind: "apertura"),
+            new_cash_count_path(kind: "apertura", shift: @shift),
             class: "caja-switch #{"caja-switch--active" if @kind == "apertura"}" %>
-      <%= link_to "Salida",
-            new_cash_count_path(kind: "cierre"),
+      <%= link_to "Cierre",
+            new_cash_count_path(kind: "cierre", shift: @shift),
             class: "caja-switch #{"caja-switch--active" if @kind == "cierre"}" %>
+      <%= link_to "📋 Historial", cash_counts_path, class: "caja-history-link" %>
     </div>
 
     <%= form_with model: @cash_count, url: cash_counts_path, local: true, class: "caja-form" do |f| %>
       <%= f.hidden_field :kind, value: @kind %>
 
       <header class="caja-head">
-        <h2>Corte de <%= @kind == "apertura" ? "entrada" : "salida" %></h2>
-        <p class="caja-head-hint">Escribe cuántas monedas o billetes hay de cada denominación.</p>
+        <h2>Corte de <%= @kind == "apertura" ? "entrada" : "cierre" %></h2>
+        <p class="caja-head-hint">Captura el efectivo en caja por denominación<%= @kind == "cierre" ? " y los montos vendidos" : "" %>.</p>
       </header>
+
+      <div class="caja-shift">
+        <span class="caja-shift-label">Turno:</span>
+        <% CashCount::SHIFTS.each do |s| %>
+          <label class="caja-shift-tab <%= 'caja-shift-tab--active' if @shift == s %>">
+            <input type="radio" name="cash_count[shift]" value="<%= s %>" <%= 'checked' if @shift == s %>>
+            <%= CashCount::SHIFT_LABELS[s] %>
+          </label>
+        <% end %>
+      </div>
 
       <% if @cash_count.errors.any? %>
         <div class="pos-flash pos-flash--error">
@@ -29,22 +40,52 @@
         </div>
       <% end %>
 
-      <div class="caja-grid">
-        <% CashCount::DENOMINATIONS.each do |denom| %>
-          <label class="caja-cell">
-            <span class="caja-cell-denom">$<%= denom %></span>
-            <%= f.number_field "d#{denom}",
-                  value: @cash_count.public_send("d#{denom}").to_i,
-                  min: 0,
-                  step: 1,
-                  inputmode: "numeric",
-                  placeholder: "0",
-                  class: "caja-cell-input",
-                  data: { denom: denom, cash_count_target: "input", action: "input->cash-count#recalc" } %>
-            <span class="caja-cell-sub" data-cash-count-target="subtotal" data-denom="<%= denom %>">$0</span>
-          </label>
-        <% end %>
-      </div>
+      <section class="caja-grid-section">
+        <h3 class="caja-section-title">Efectivo en caja</h3>
+        <div class="caja-grid">
+          <% CashCount::DENOMINATIONS.each do |denom| %>
+            <label class="caja-cell">
+              <span class="caja-cell-denom">$<%= denom %></span>
+              <%= f.number_field "d#{denom}",
+                    value: @cash_count.public_send("d#{denom}").to_i,
+                    min: 0,
+                    step: 1,
+                    inputmode: "numeric",
+                    placeholder: "0",
+                    class: "caja-cell-input",
+                    data: { denom: denom, cash_count_target: "input", action: "input->cash-count#recalc" } %>
+              <span class="caja-cell-sub" data-cash-count-target="subtotal" data-denom="<%= denom %>">$0</span>
+            </label>
+          <% end %>
+        </div>
+      </section>
+
+      <% if @kind == "cierre" %>
+        <section class="caja-sold-section">
+          <h3 class="caja-section-title">Montos vendidos en el turno</h3>
+          <% if @sales %>
+            <p class="caja-sold-sys">Sistema: efectivo $<%= format('%.2f', @sales[:efectivo] || 0) %> · tarjeta $<%= format('%.2f', @sales[:tarjeta] || 0) %> · dólares $<%= format('%.2f', @sales[:dolares] || 0) %> · transferencia $<%= format('%.2f', @sales[:transferencia] || 0) %></p>
+          <% end %>
+          <div class="caja-sold-grid">
+            <label class="caja-sold-field">
+              <span>💵 Efectivo</span>
+              <%= f.number_field :sold_cash, step: "0.01", min: 0, placeholder: "0.00", class: "caja-sold-input" %>
+            </label>
+            <label class="caja-sold-field">
+              <span>💳 Tarjeta</span>
+              <%= f.number_field :sold_card, step: "0.01", min: 0, placeholder: "0.00", class: "caja-sold-input" %>
+            </label>
+            <label class="caja-sold-field">
+              <span>💲 Dólares (MXN equiv)</span>
+              <%= f.number_field :sold_usd, step: "0.01", min: 0, placeholder: "0.00", class: "caja-sold-input" %>
+            </label>
+            <label class="caja-sold-field">
+              <span>📱 Transferencia</span>
+              <%= f.number_field :sold_transfer, step: "0.01", min: 0, placeholder: "0.00", class: "caja-sold-input" %>
+            </label>
+          </div>
+        </section>
+      <% end %>
 
       <div class="caja-notes">
         <%= f.label :notes, "Notas (opcional)", class: "caja-notes-label" %>
@@ -53,10 +94,10 @@
 
       <footer class="caja-foot">
         <div class="caja-total">
-          <span>Total en caja</span>
+          <span>Efectivo en caja</span>
           <strong data-cash-count-target="total">$0.00</strong>
         </div>
-        <%= f.submit "Guardar corte de #{@kind == "apertura" ? "entrada" : "salida"}", class: "auth-button caja-submit" %>
+        <%= f.submit "Guardar corte de #{@kind == "apertura" ? "entrada" : "cierre"}", class: "auth-button caja-submit" %>
       </footer>
     <% end %>
   </div>

@@ -10,6 +10,11 @@
     <%= f.text_field :name, required: true, placeholder: "ej. leche entera" %>
   </label>
 
+  <label class="insumo-field">
+    <span>Categoría</span>
+    <%= f.select :category, Ingredient::CATEGORIES.map { |c| [Ingredient::CATEGORY_LABELS[c], c] } %>
+  </label>
+
   <div class="insumo-field-row">
     <label class="insumo-field">
       <span>Unidad</span>

@@ -1,24 +1,33 @@
 require "csv"
 
 class CortesController < ApplicationController
+  before_action :require_admin!
+
   PERIODS = %w[day week month].freeze
 
   def index
     @period = PERIODS.include?(params[:period]) ? params[:period] : "day"
     @date = parse_date(params[:date]) || Date.current
     @range_start, @range_end = period_range(@date, @period)
+    @selected_user_id = params[:user_id].presence
 
-    @orders = Order.completed
-                   .where(completed_at: @range_start..@range_end)
-                   .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
-                   .order(completed_at: :desc)
+    base = Order.completed
+                .where(completed_at: @range_start..@range_end)
+                .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
+
+    @all_users_in_range = User.where(id: base.distinct.pluck(:user_id)).order(:name)
+
+    @orders = base
+    @orders = @orders.where(user_id: @selected_user_id) if @selected_user_id
+    @orders = @orders.order(completed_at: :desc)
 
     @total_revenue = @orders.sum(&:total)
     @total_items   = @orders.sum { |o| o.order_items.sum(&:quantity) }
 
-    @top_products = top_products(@orders)
-    @by_kind = by_kind(@orders)
-    @by_payment = by_payment(@orders)
+    @top_products    = top_products(@orders)
+    @by_kind         = by_kind(@orders)
+    @by_payment      = by_payment(@orders)
+    @by_user         = by_user(base)
     @daily_breakdown = daily_breakdown(@orders) if @period != "day"
     @prev_date, @next_date = navigation_dates(@date, @period)
   end
@@ -155,6 +164,18 @@ class CortesController < ApplicationController
       tally[key] += o.total
     end
     tally.reject { |_, v| v.zero? }
+  end
+
+  def by_user(orders)
+    tally = Hash.new { |h, k| h[k] = { name: nil, orders: 0, revenue: 0.to_d, items: 0 } }
+    orders.each do |o|
+      key = o.user_id
+      tally[key][:name]    = o.user&.name || "—"
+      tally[key][:orders] += 1
+      tally[key][:revenue] += o.total
+      tally[key][:items]  += o.order_items.sum(&:quantity)
+    end
+    tally.values.sort_by { |r| -r[:revenue].to_f }
   end
 
   def daily_breakdown(orders)

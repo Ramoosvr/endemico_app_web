@@ -1,57 +1,124 @@
-<% content_for :title, "Cortes de caja · Endémico" %>
+<% content_for :title, "Historial de cortes · Endémico" %>
 
 <div class="pos">
-  <%= render "shared/header", heading: "Cortes de caja", active: :caja, zone: :backoffice %>
+  <%= render "shared/header", heading: "Historial de cortes", active: :caja, zone: :frontoffice %>
 
   <div class="caja-wrap">
-    <section class="caja-today">
-      <h3>Hoy</h3>
-      <div class="caja-today-grid">
-        <div>
-          <h4>Entradas</h4>
-          <% if @today_aperturas.any? %>
-            <ul class="caja-today-list">
-              <% @today_aperturas.each do |c| %>
-                <li><strong><%= c.user.name %></strong> · $<%= format("%.2f", c.total) %> · <%= c.created_at.strftime("%d/%m %H:%M") %></li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="caja-empty">Sin entradas registradas.</p>
-          <% end %>
-        </div>
-        <div>
-          <h4>Salidas</h4>
-          <% if @today_cierres.any? %>
-            <ul class="caja-today-list">
-              <% @today_cierres.each do |c| %>
-                <li><strong><%= c.user.name %></strong> · $<%= format("%.2f", c.total) %> · <%= c.created_at.strftime("%d/%m %H:%M") %></li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="caja-empty">Sin salidas registradas.</p>
-          <% end %>
-        </div>
-      </div>
-    </section>
+    <div class="caja-history-head">
+      <h2><%= admin? ? "Todos los cortes" : "Mis cortes" %></h2>
+      <%= link_to "+ Nuevo corte", new_cash_count_path, class: "caja-history-new" %>
+    </div>
 
-    <section class="caja-history">
-      <h3>Historial (últimos 100)</h3>
-      <table class="caja-table">
-        <thead>
-          <tr><th>Fecha</th><th>Cajero</th><th>Tipo</th><th>Total</th><th>Notas</th></tr>
-        </thead>
-        <tbody>
-          <% @counts.each do |c| %>
+    <% if @counts.any? %>
+      <section class="caja-history-today">
+        <h3>Hoy</h3>
+        <% if @today_aperturas.any? || @today_cierres.any? %>
+          <div class="caja-history-today-grid">
+            <div>
+              <h4>Entradas</h4>
+              <% if @today_aperturas.any? %>
+                <ul class="caja-history-today-list">
+                  <% @today_aperturas.each do |c| %>
+                    <li><%= link_to "#{c.user.name} · $#{format('%.2f', c.total)} · #{c.created_at.strftime('%H:%M')}", cash_count_path(c) %></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="caja-empty">Sin entradas hoy.</p>
+              <% end %>
+            </div>
+            <div>
+              <h4>Cierres</h4>
+              <% if @today_cierres.any? %>
+                <ul class="caja-history-today-list">
+                  <% @today_cierres.each do |c| %>
+                    <li><%= link_to "#{c.user.name} · #{c.shift_label} · $#{format('%.2f', c.total)}", cash_count_path(c) %></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="caja-empty">Sin cierres hoy.</p>
+              <% end %>
+            </div>
+            <div>
+              <h4>Retiros</h4>
+              <% if @today_withdrawals.any? %>
+                <ul class="caja-history-today-list">
+                  <% @today_withdrawals.each do |w| %>
+                    <li><%= w.user.name %> · <strong>-$<%= format('%.2f', w.amount) %></strong> · <%= w.created_at.strftime('%H:%M') %></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="caja-empty">Sin retiros hoy.</p>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <p class="caja-empty">Sin movimientos hoy.</p>
+        <% end %>
+      </section>
+
+      <section class="caja-history-all">
+        <h3>Historial</h3>
+        <table class="caja-table">
+          <thead>
             <tr>
-              <td><%= c.created_at.strftime("%d/%m %H:%M") %></td>
-              <td><%= c.user.name %></td>
-              <td><%= c.kind_label %></td>
-              <td>$<%= format("%.2f", c.total) %></td>
-              <td><%= c.notes %></td>
+              <th>Fecha</th>
+              <% if admin? %><th>Cajero</th><% end %>
+              <th>Tipo</th>
+              <th>Turno</th>
+              <th>Efectivo</th>
+              <th>Vendido</th>
+              <th></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </section>
+          </thead>
+          <tbody>
+            <% @counts.each do |c| %>
+              <tr>
+                <td><%= c.created_at.strftime("%d/%m %H:%M") %></td>
+                <% if admin? %><td><%= c.user.name %></td><% end %>
+                <td><%= c.kind_label %></td>
+                <td><%= c.shift ? CashCount::SHIFT_LABELS[c.shift].split(' ').first : "—" %></td>
+                <td>$<%= format('%.2f', c.total) %></td>
+                <td>
+                  <% if c.kind == "cierre" %>
+                    $<%= format('%.2f', (c.sold_cash.to_d + c.sold_card.to_d + c.sold_usd.to_d + c.sold_transfer.to_d)) %>
+                  <% else %>
+                    —
+                  <% end %>
+                </td>
+                <td><%= link_to "ver", cash_count_path(c), class: "caja-history-view" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </section>
+
+      <% if @withdrawals.any? %>
+        <section class="caja-history-all">
+          <h3>Retiros de caja</h3>
+          <table class="caja-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <% if admin? %><th>Admin</th><% end %>
+                <th>Monto</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @withdrawals.each do |w| %>
+                <tr>
+                  <td><%= w.created_at.strftime("%d/%m %H:%M") %></td>
+                  <% if admin? %><td><%= w.user.name %></td><% end %>
+                  <td>$<%= format('%.2f', w.amount) %></td>
+                  <td><%= w.reason.presence || "—" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </section>
+      <% end %>
+    <% else %>
+      <p class="caja-empty">Aún no has hecho ningún corte. <%= link_to "Crear el primero →", new_cash_count_path %></p>
+    <% end %>
   </div>
 </div>
