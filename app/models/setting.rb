@@ -16,7 +16,8 @@ class Setting < ApplicationRecord
     "clip_serial_number"       => "",
     "clip_base_url"            => "https://api.payclip.io",
     "clip_enabled"             => "false",
-    "usd_rate"                 => "18.00"
+    "usd_rate"                 => "18.00",
+    "refund_pin"               => ""
   }.freeze
 
   TYPED_KEYS = {

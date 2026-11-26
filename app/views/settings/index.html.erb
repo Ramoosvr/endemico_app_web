@@ -42,6 +42,12 @@
           <input type="number" step="0.01" min="0" name="settings[usd_rate]" value="<%= @settings["usd_rate"] %>">
           <small>Pesos por cada dólar. Se usa al cobrar en dólares.</small>
         </label>
+
+        <label class="ajustes-field">
+          <span>PIN de devolución (4 dígitos)</span>
+          <input type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" name="settings[refund_pin]" value="<%= @settings["refund_pin"] %>" placeholder="••••">
+          <small>Autoriza a las baristas a devolver pedidos desde Pendientes. Déjalo vacío para que solo admin devuelva.</small>
+        </label>
       </div>
     </section>
 

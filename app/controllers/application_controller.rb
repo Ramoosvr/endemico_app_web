@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
 
   before_action :require_login
 
-  helper_method :current_user, :logged_in?, :admin?, :current_order, :current_order_or_nil
+  helper_method :current_user, :logged_in?, :admin?, :current_order, :current_order_or_nil, :pending_orders_count
 
   private
 
@@ -36,5 +36,11 @@ class ApplicationController < ActionController::Base
   def current_order_or_nil
     return nil unless current_user
     current_user.orders.open.first
+  end
+
+  def pending_orders_count
+    Rails.cache.fetch("pending_orders_count", expires_in: 3.seconds) do
+      Order.pending_preparation.count
+    end
   end
 end

@@ -1,0 +1,105 @@
+<% content_for :title, "Devoluciones · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Devoluciones", active: :devoluciones, zone: :backoffice %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="pruebas-wrap">
+    <section class="pruebas-intro">
+      <h2>Devolver un pedido</h2>
+      <p>Si te equivocaste de método de pago o hay que cancelar una venta, devuelve el pedido: se regresa el <strong>stock del producto</strong>, los <strong>ingredientes consumidos</strong>, y el pedido deja de contar en el corte.</p>
+    </section>
+
+    <section class="pruebas-recent">
+      <h3>Ventas de las últimas 24 h</h3>
+      <% if @orders.any? %>
+        <table class="pruebas-table">
+          <thead>
+            <tr><th>Hora</th><th>Pedido</th><th>Cliente</th><th>Cajero</th><th>Método</th><th>Total</th><th>Items</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% @orders.each do |o| %>
+              <tr>
+                <td><%= o.completed_at.strftime("%d/%m %H:%M") %></td>
+                <td>#<%= o.id %></td>
+                <td><%= o.customer_name.presence || "—" %></td>
+                <td><%= o.user&.name %></td>
+                <td><span class="pruebas-tag pruebas-tag--test"><%= o.payment_method %></span></td>
+                <td>$<%= format("%.2f", o.total) %></td>
+                <td><%= o.order_items.map { |it| "#{it.quantity}× #{it.product&.name}" }.join(", ") %></td>
+                <td>
+                  <button type="button" class="pruebas-btn pruebas-btn--courtesy"
+                          onclick="document.getElementById('refund-dialog-<%= o.id %>').showModal()">
+                    Devolver
+                  </button>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="pruebas-empty">Sin ventas completadas en las últimas 24 h.</p>
+      <% end %>
+    </section>
+
+    <% @orders.each do |o| %>
+      <dialog id="refund-dialog-<%= o.id %>" class="cmz cname-dialog">
+        <%= form_with url: devoluciones_path, method: :post, local: true, class: "cmz-form cname-form" do %>
+          <input type="hidden" name="order_id" value="<%= o.id %>">
+          <header class="cmz-head">
+            <h2 class="cmz-title">Devolver pedido #<%= o.id %></h2>
+            <button type="button" class="cmz-close" onclick="document.getElementById('refund-dialog-<%= o.id %>').close()" aria-label="Cerrar">×</button>
+          </header>
+          <div class="cmz-body cname-body" style="display:grid; gap:14px;">
+            <div style="font-size:14px; color: var(--ink-mute);">
+              Vas a devolver <strong>$<%= format("%.2f", o.total) %></strong> cobrados en <strong><%= o.payment_method %></strong>.
+              Se regresará el stock de <strong><%= o.order_items.sum(&:quantity) %> ítem(s)</strong> y los ingredientes consumidos.
+            </div>
+            <label class="cname-label">
+              Motivo
+              <textarea name="reason" rows="2" placeholder="ej. método de pago equivocado, cliente canceló, error de cajero…" class="cname-input" style="font-size:15px; font-family:inherit;" required></textarea>
+            </label>
+          </div>
+          <footer class="cmz-foot cname-foot">
+            <button type="submit" class="auth-button cname-submit">Confirmar devolución</button>
+          </footer>
+        <% end %>
+      </dialog>
+    <% end %>
+
+    <section class="pruebas-recent">
+      <h3>Devoluciones recientes (últimos 7 días)</h3>
+      <% if @recent_refunds.any? %>
+        <%
+          total_refunded = @recent_refunds.sum(&:total)
+        %>
+        <div class="pruebas-summary">
+          <div><strong><%= @recent_refunds.size %></strong><span>devoluciones</span></div>
+          <div><strong>$<%= format("%.2f", total_refunded) %></strong><span>valor devuelto</span></div>
+        </div>
+        <table class="pruebas-table">
+          <thead>
+            <tr><th>Devuelto</th><th>Pedido</th><th>Original</th><th>Devolvió</th><th>Método</th><th>Total</th><th>Motivo</th></tr>
+          </thead>
+          <tbody>
+            <% @recent_refunds.each do |o| %>
+              <tr>
+                <td><%= o.refunded_at&.strftime("%d/%m %H:%M") %></td>
+                <td>#<%= o.id %></td>
+                <td><%= o.user&.name %></td>
+                <td><%= o.refunded_by_user&.name %></td>
+                <td><%= o.payment_method %></td>
+                <td>$<%= format("%.2f", o.total) %></td>
+                <td><%= o.refund_reason.presence || "—" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="pruebas-empty">Sin devoluciones en los últimos 7 días.</p>
+      <% end %>
+    </section>
+  </div>
+</div>

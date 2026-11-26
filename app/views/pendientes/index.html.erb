@@ -1,0 +1,119 @@
+<% content_for :title, "Pendientes · Endémico" %>
+<% content_for :head do %>
+  <% if @orders.any? %>
+    <meta http-equiv="refresh" content="10">
+  <% end %>
+<% end %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Pendientes", active: :pendientes, zone: :frontoffice %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="pend-head">
+    <div>
+      <strong class="pend-count"><%= @orders.size %></strong>
+      <span class="pend-count-label"><%= @orders.size == 1 ? "pedido por hacer" : "pedidos por hacer" %></span>
+    </div>
+    <div class="pend-head-right">
+      <span class="pend-refresh">La página se actualiza sola cada 10s</span>
+      <% if @orders.any? %>
+        <%= button_to "Marcar todos como hechos ✓", pendientes_todos_path,
+              method: :post,
+              class: "pend-done-all-btn",
+              form: { data: { turbo_confirm: "¿Marcar los #{@orders.size} pedidos como hechos?" } } %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @orders.any? %>
+    <section class="pend-grid">
+      <% @orders.each do |o| %>
+        <article class="pend-card">
+          <header class="pend-card-head">
+            <div class="pend-card-id">#<%= o.id %></div>
+            <div class="pend-card-customer">
+              <% if o.customer_name.present? %>
+                <strong><%= o.customer_name %></strong>
+              <% else %>
+                <em>Sin nombre</em>
+              <% end %>
+            </div>
+            <div class="pend-card-time"><%= o.completed_at.strftime("%H:%M") %></div>
+          </header>
+
+          <ul class="pend-items">
+            <% o.order_items.each do |item| %>
+              <li class="pend-item">
+                <div class="pend-item-head">
+                  <strong class="pend-item-qty"><%= item.quantity %>×</strong>
+                  <span class="pend-item-name"><%= item.product.name %></span>
+                </div>
+                <% mods = item.modifier_lines %>
+                <% if mods.any? %>
+                  <ul class="pend-item-mods">
+                    <% mods.each do |m| %>
+                      <li><%= m %></li>
+                    <% end %>
+                  </ul>
+                <% end %>
+                <% if item.notes.present? %>
+                  <p class="pend-item-note">📝 <%= item.notes %></p>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+
+          <footer class="pend-card-foot">
+            <span class="pend-card-total">$<%= format("%.2f", o.total) %> · <%= o.payment_method.presence || "—" %></span>
+            <div class="pend-card-foot-actions">
+              <button type="button" class="pend-refund-btn"
+                      onclick="document.getElementById('pend-refund-<%= o.id %>').showModal()">
+                Devolver
+              </button>
+              <%= button_to "Pedido hecho ✓", pendiente_listo_path(o),
+                    method: :post,
+                    class: "pend-done-btn",
+                    form: { style: "display:inline" } %>
+            </div>
+          </footer>
+        </article>
+      <% end %>
+    </section>
+
+    <% @orders.each do |o| %>
+      <dialog id="pend-refund-<%= o.id %>" class="cmz cname-dialog">
+        <%= form_with url: devoluciones_path, method: :post, local: true, class: "cmz-form cname-form" do %>
+          <input type="hidden" name="order_id" value="<%= o.id %>">
+          <header class="cmz-head">
+            <h2 class="cmz-title">Devolver pedido #<%= o.id %></h2>
+            <button type="button" class="cmz-close" onclick="document.getElementById('pend-refund-<%= o.id %>').close()" aria-label="Cerrar">×</button>
+          </header>
+          <div class="cmz-body cname-body" style="display:grid; gap:14px;">
+            <div style="font-size:14px; color: var(--ink-mute);">
+              Se regresa el stock de <strong><%= o.order_items.sum(&:quantity) %> ítem(s)</strong> e ingredientes. <strong>$<%= format("%.2f", o.total) %></strong> cobrados en <strong><%= o.payment_method %></strong> ya no cuentan en el corte.
+            </div>
+            <label class="cname-label">
+              Motivo
+              <textarea name="reason" rows="2" placeholder="ej. método de pago equivocado, error…" class="cname-input" style="font-size:15px; font-family:inherit;" required></textarea>
+            </label>
+            <label class="cname-label">
+              PIN de autorización (4 dígitos)
+              <input type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" name="pin" required
+                     class="cname-input" style="font-size:24px; letter-spacing:12px; text-align:center; font-family:Georgia,serif;" placeholder="••••">
+            </label>
+          </div>
+          <footer class="cmz-foot cname-foot">
+            <button type="submit" class="auth-button cname-submit">Confirmar devolución</button>
+          </footer>
+        <% end %>
+      </dialog>
+    <% end %>
+  <% else %>
+    <div class="pend-empty">
+      <h2>Todo al día</h2>
+      <p>No hay pedidos pendientes por hacer. 🎉</p>
+    </div>
+  <% end %>
+</div>

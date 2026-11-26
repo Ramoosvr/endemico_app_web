@@ -1,8 +1,9 @@
 class Order < ApplicationRecord
-  STATUSES = %w[open completed cancelled].freeze
+  STATUSES = %w[open completed cancelled refunded].freeze
   PAYMENT_METHODS = %w[efectivo tarjeta transferencia dolares cortesía].freeze
 
   belongs_to :user
+  belongs_to :refunded_by_user, class_name: "User", optional: true
   has_many :order_items, -> { order(:id) }, dependent: :destroy, inverse_of: :order
 
   validates :status, inclusion: { in: STATUSES }
@@ -10,6 +11,9 @@ class Order < ApplicationRecord
 
   scope :open,      -> { where(status: "open") }
   scope :completed, -> { where(status: "completed") }
+  scope :refunded,  -> { where(status: "refunded") }
+  scope :pending_preparation, -> { where(status: "completed", prepared_at: nil) }
+  scope :prepared,            -> { where.not(prepared_at: nil) }
 
   def recalc_total!
     update!(total: order_items.sum(:line_total))
@@ -41,6 +45,30 @@ class Order < ApplicationRecord
   def usd_change_mxn
     return nil unless usd_received.to_f.positive? && usd_rate.to_f.positive?
     (usd_received.to_d * usd_rate.to_d) - total.to_d
+  end
+
+  def refund!(reason:, user:)
+    raise ArgumentError, "Solo se pueden devolver pedidos completados" unless status == "completed"
+
+    transaction do
+      order_items.includes(
+        :removed_ingredients,
+        :extras,
+        chosen_options: { option_choice: :option_choice_ingredients },
+        product: { product_ingredients: :ingredient }
+      ).each do |item|
+        product = item.product
+        product.update!(stock: product.stock.to_i + item.quantity.to_i)
+        restore_ingredients_for(item)
+      end
+
+      update!(
+        status: "refunded",
+        refunded_at: Time.current,
+        refund_reason: reason.to_s.strip.presence,
+        refunded_by_user: user
+      )
+    end
   end
 
   private
@@ -76,6 +104,39 @@ class Order < ApplicationRecord
       ing = Ingredient.find(ingredient_id)
       new_stock = [ ing.stock.to_d - amount, 0.to_d ].max
       ing.update!(stock: new_stock)
+    end
+  end
+
+  def restore_ingredients_for(item)
+    qty = item.quantity.to_i
+    return if qty <= 0
+
+    removed_ids = item.removed_ingredients.map(&:ingredient_id).to_set
+    extra_ids   = item.extras.map(&:ingredient_id).to_set
+
+    restored = Hash.new { |h, k| h[k] = 0.to_d }
+
+    item.product.product_ingredients.each do |pi|
+      next if pi.quantity_per_unit.to_d.zero?
+
+      if pi.default_included?
+        next if removed_ids.include?(pi.ingredient_id)
+        restored[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
+      elsif extra_ids.include?(pi.ingredient_id)
+        restored[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
+      end
+    end
+
+    item.chosen_options.each do |cop|
+      cop.option_choice.option_choice_ingredients.each do |oci|
+        next if oci.quantity_per_unit.to_d.zero?
+        restored[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty
+      end
+    end
+
+    restored.each do |ingredient_id, amount|
+      ing = Ingredient.find(ingredient_id)
+      ing.update!(stock: ing.stock.to_d + amount)
     end
   end
 end
