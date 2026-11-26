@@ -1,0 +1,76 @@
+<% content_for :title, "API · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "API tokens", active: :api_tokens, zone: :backoffice %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="api-wrap">
+    <% if @new_token_raw %>
+      <div class="api-token-reveal">
+        <h3>Token nuevo (cópialo YA):</h3>
+        <code><%= @new_token_raw %></code>
+        <p class="api-token-hint">Guárdalo en lugar seguro. Después de recargar esta página no podrás volver a verlo.</p>
+      </div>
+    <% end %>
+
+    <section class="api-new">
+      <h2>Crear token</h2>
+      <%= form_with url: api_tokens_path, method: :post, local: true, class: "api-form" do %>
+        <label class="api-field">
+          <span>Nombre (para identificar quién lo usa)</span>
+          <input type="text" name="name" placeholder="ej. Base44 — Jano" required />
+        </label>
+        <div class="api-scopes">
+          <label><input type="checkbox" name="scopes[]" value="read" checked> read (leer)</label>
+          <label><input type="checkbox" name="scopes[]" value="write" checked> write (crear/editar/borrar)</label>
+        </div>
+        <button type="submit" class="auth-button">Crear token</button>
+      <% end %>
+    </section>
+
+    <section class="api-list">
+      <h2>Tokens existentes</h2>
+      <% if @tokens.any? %>
+        <table class="api-table">
+          <thead>
+            <tr><th>Nombre</th><th>Scopes</th><th>Creado</th><th>Último uso</th><th>Estado</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% @tokens.each do |t| %>
+              <tr class="<%= 'api-row--revoked' if t.revoked? %>">
+                <td><%= t.name %></td>
+                <td><%= t.scopes %></td>
+                <td><%= t.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+                <td><%= t.last_used_at ? t.last_used_at.strftime("%d/%m/%Y %H:%M") : "—" %></td>
+                <td><%= t.revoked? ? "revocado #{t.revoked_at.strftime('%d/%m')}" : "activo" %></td>
+                <td>
+                  <% unless t.revoked? %>
+                    <%= button_to "Revocar", api_token_path(t), method: :delete, class: "api-btn api-btn--danger",
+                          form: { data: { turbo_confirm: "¿Revocar #{t.name}? No se puede deshacer." } } %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="api-empty">Aún no hay tokens. Crea uno arriba.</p>
+      <% end %>
+    </section>
+
+    <section class="api-docs">
+      <h2>Endpoints</h2>
+      <ul class="api-endpoints">
+        <li><code>GET  /api/v1/products</code> — lista productos</li>
+        <li><code>POST /api/v1/products</code> — crea/actualiza por <code>external_id</code></li>
+        <li><code>PATCH /api/v1/products/:id</code> — actualiza (id o external_id)</li>
+        <li><code>DELETE /api/v1/products/:id</code></li>
+        <li><code>GET/POST/PATCH/DELETE /api/v1/ingredients</code></li>
+        <li><code>GET /api/v1/ventas?desde=&amp;hasta=</code> — pedidos completados en el rango</li>
+      </ul>
+      <p class="api-auth">Autenticación: header <code>Authorization: Bearer &lt;token&gt;</code></p>
+    </section>
+  </div>
+</div>

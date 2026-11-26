@@ -22,9 +22,25 @@ Rails.application.routes.draw do
   get  "corte" => "cortes#index", as: :corte
   post "corte/upload" => "cortes#upload_to_drive", as: :corte_upload
 
-  get  "caja"       => "cash_counts#index",  as: :cash_counts
-  get  "caja/nueva" => "cash_counts#new",    as: :new_cash_count
-  post "caja"       => "cash_counts#create"
+  get  "pendientes"            => "pendientes#index",            as: :pendientes
+  post "pendientes/:id/listo"  => "pendientes#mark_prepared",    as: :pendiente_listo
+  post "pendientes/todos"      => "pendientes#mark_all_prepared", as: :pendientes_todos
+
+  get  "pruebas"         => "pruebas#index",   as: :pruebas
+  post "pruebas/consume" => "pruebas#consume", as: :pruebas_consume
+
+  get  "devoluciones" => "refunds#index",  as: :devoluciones
+  post "devoluciones" => "refunds#create"
+
+  get  "merma" => "mermas#index",  as: :merma
+  post "merma" => "mermas#create"
+
+  post "retiro-caja" => "cash_withdrawals#create", as: :cash_withdrawal
+
+  get  "caja"        => "cash_counts#index",  as: :cash_counts
+  get  "caja/nueva"  => "cash_counts#new",    as: :new_cash_count
+  get  "caja/:id"    => "cash_counts#show",   as: :cash_count
+  post "caja"        => "cash_counts#create"
 
   get "google_oauth/authorize" => "google_oauth#authorize", as: :google_oauth_authorize
   get "google_oauth/callback"  => "google_oauth#callback",  as: :google_oauth_callback
@@ -41,6 +57,8 @@ Rails.application.routes.draw do
 
   get   "ajustes" => "settings#index", as: :ajustes
   patch "ajustes" => "settings#update"
+
+  resources :api_tokens, only: [:index, :create, :destroy], path: "api-tokens"
 
   get "reportes" => "reportes#index", as: :reportes
 
@@ -61,6 +79,15 @@ Rails.application.routes.draw do
   end
 
   resource :clip_payment, only: [:create, :show, :destroy], controller: "clip_payments"
+
+  namespace :api do
+    namespace :v1 do
+      resources :products,    param: :id, only: [:index, :show, :create, :update, :destroy]
+      resources :ingredients, param: :id, only: [:index, :show, :create, :update, :destroy]
+      resources :sales,       only: [:index]
+      get "ventas" => "sales#index"
+    end
+  end
 
   root "main#index"
 end
