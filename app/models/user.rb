@@ -8,6 +8,7 @@ class User < ApplicationRecord
   has_many :orders, dependent: :nullify
   has_many :agent_messages, dependent: :destroy
   has_many :cash_counts, dependent: :destroy
+  has_many :cash_withdrawals, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :role, inclusion: { in: ROLES }

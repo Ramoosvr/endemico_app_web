@@ -1,0 +1,102 @@
+<% content_for :title, "Merma · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Merma", active: :merma, zone: (admin? ? :backoffice : :frontoffice) %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="pruebas-wrap">
+    <section class="pruebas-intro">
+      <h2>Registrar merma</h2>
+      <p>Si un insumo se echó a perder, se tiró, o se rompió, regístralo acá. Se descuenta del stock y queda guardado como merma (no cuenta como venta ni como corte).</p>
+    </section>
+
+    <% Ingredient::CATEGORIES.each do |cat| %>
+      <% items = @ingredients[cat] || [] %>
+      <% next if items.empty? %>
+      <section class="pruebas-section">
+        <h3><%= Ingredient::CATEGORY_LABELS[cat] %></h3>
+        <div class="pruebas-grid">
+          <% items.each do |ing| %>
+            <div class="pruebas-card">
+              <div class="pruebas-card-name"><%= ing.name %></div>
+              <div class="pruebas-card-price">
+                Stock: <%= ing.stock.to_f.round(2) %> <%= ing.unit %>
+                <% if ing.below_min? %> · <span style="color: var(--danger-text);">⚠ bajo mínimo</span><% end %>
+              </div>
+              <div class="pruebas-card-actions">
+                <button type="button" class="pruebas-btn pruebas-btn--courtesy"
+                        onclick="document.getElementById('merma-dialog-<%= ing.id %>').showModal()">
+                  Merma
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    <% @ingredients.values.flatten.each do |ing| %>
+      <dialog id="merma-dialog-<%= ing.id %>" class="cmz cname-dialog">
+        <%= form_with url: merma_path, method: :post, local: true, class: "cmz-form cname-form" do %>
+          <input type="hidden" name="ingredient_id" value="<%= ing.id %>">
+          <header class="cmz-head">
+            <h2 class="cmz-title">Merma de <%= ing.name %></h2>
+            <button type="button" class="cmz-close" onclick="document.getElementById('merma-dialog-<%= ing.id %>').close()" aria-label="Cerrar">×</button>
+          </header>
+          <div class="cmz-body cname-body" style="display:grid; gap:14px;">
+            <div style="font-size:13px; color: var(--ink-mute);">
+              Stock actual: <strong><%= ing.stock.to_f.round(2) %> <%= ing.unit %></strong>.
+            </div>
+            <label class="cname-label">
+              Cantidad merma (<%= ing.unit %>)
+              <input type="number" step="0.001" min="0.001" name="amount" required autofocus
+                     class="cname-input" style="font-size:22px; text-align:right; font-family:Georgia,serif;" placeholder="0">
+            </label>
+            <label class="cname-label">
+              Motivo (opcional pero recomendado)
+              <textarea name="reason" rows="2" placeholder="ej. se cayó al piso, se venció, se quemó…" class="cname-input" style="font-size:15px; font-family:inherit;"></textarea>
+            </label>
+          </div>
+          <footer class="cmz-foot cname-foot">
+            <button type="submit" class="auth-button cname-submit">Registrar merma</button>
+          </footer>
+        <% end %>
+      </dialog>
+    <% end %>
+
+    <section class="pruebas-recent">
+      <h3>Mermas recientes (últimos 30 días)</h3>
+      <% if @recent.any? %>
+        <%
+          total_mermas = @recent.size
+          total_value  = @recent.sum { |m| m.amount.to_d * m.ingredient.cost_per_unit.to_d }
+        %>
+        <div class="pruebas-summary">
+          <div><strong><%= total_mermas %></strong><span>registros</span></div>
+          <div><strong>$<%= format("%.2f", total_value) %></strong><span>valor perdido</span></div>
+        </div>
+        <table class="pruebas-table">
+          <thead>
+            <tr><th>Fecha</th><th>Quién</th><th>Insumo</th><th>Cantidad</th><th>Valor</th><th>Motivo</th></tr>
+          </thead>
+          <tbody>
+            <% @recent.each do |m| %>
+              <tr>
+                <td><%= m.created_at.strftime("%d/%m %H:%M") %></td>
+                <td><%= m.user&.name %></td>
+                <td><%= m.ingredient.name %></td>
+                <td><%= m.amount.to_f.round(3) %> <%= m.ingredient.unit %></td>
+                <td>$<%= format("%.2f", m.amount.to_d * m.ingredient.cost_per_unit.to_d) %></td>
+                <td><%= m.reason.presence || "—" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="pruebas-empty">Sin mermas registradas en los últimos 30 días.</p>
+      <% end %>
+    </section>
+  </div>
+</div>

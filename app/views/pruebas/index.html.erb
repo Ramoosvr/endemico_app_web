@@ -1,0 +1,99 @@
+<% content_for :title, "Pruebas y cortesías · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Pruebas y cortesías", active: :pruebas, zone: (admin? ? :backoffice : :frontoffice) %>
+
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+  <% if flash[:alert]  %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
+
+  <div class="pruebas-wrap" data-controller="pruebas">
+    <section class="pruebas-intro">
+      <h2>Consumo interno</h2>
+      <p>Toca un producto para registrarlo como <strong>prueba</strong> o <strong>cortesía</strong>. Se descuenta del stock y queda guardado como corte con método "cortesía", pero no suma a ventas.</p>
+    </section>
+
+    <% %w[bebida comida postre].each do |kind| %>
+      <% items = @products[kind] || [] %>
+      <% next if items.empty? %>
+      <section class="pruebas-section">
+        <h3><%= kind.capitalize %></h3>
+        <div class="pruebas-grid">
+          <% items.each do |p| %>
+            <div class="pruebas-card">
+              <div class="pruebas-card-name"><%= p.name %></div>
+              <div class="pruebas-card-price">$<%= format("%.2f", p.price) %></div>
+              <div class="pruebas-card-actions">
+                <button type="button" class="pruebas-btn pruebas-btn--test"
+                        data-action="click->pruebas#open"
+                        data-product-id="<%= p.id %>"
+                        data-product-name="<%= p.name %>"
+                        data-reason="prueba">Prueba</button>
+                <button type="button" class="pruebas-btn pruebas-btn--courtesy"
+                        data-action="click->pruebas#open"
+                        data-product-id="<%= p.id %>"
+                        data-product-name="<%= p.name %>"
+                        data-reason="cortesia">Cortesía</button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    <dialog id="pruebas-dialog" class="cmz cname-dialog" data-pruebas-target="dialog">
+      <%= form_with url: pruebas_consume_path, method: :post, local: true, class: "cmz-form cname-form" do %>
+        <input type="hidden" name="product_id" data-pruebas-target="productId">
+        <input type="hidden" name="reason"     data-pruebas-target="reason">
+        <header class="cmz-head">
+          <h2 class="cmz-title" data-pruebas-target="title">Registrar</h2>
+          <button type="button" class="cmz-close" data-action="click->pruebas#close" aria-label="Cerrar">×</button>
+        </header>
+        <div class="cmz-body cname-body">
+          <label class="cname-label" for="pruebas_note">¿Por qué? (opcional pero recomendado)</label>
+          <textarea id="pruebas_note" name="note" rows="3" class="cname-input" style="font-size:16px; font-family: inherit;" placeholder="ej. muestra de chef, cliente insatisfecho, test de nueva receta…"></textarea>
+        </div>
+        <footer class="cmz-foot cname-foot">
+          <button type="submit" class="auth-button cname-submit" data-pruebas-target="submit">Registrar</button>
+        </footer>
+      <% end %>
+    </dialog>
+
+    <section class="pruebas-recent">
+      <h3>Registro (últimos 30 días)</h3>
+      <% if @recent.any? %>
+        <%
+          total_prueba    = @recent.count { |o| o.order_items.first&.notes.to_s.start_with?("PRUEBA") }
+          total_cortesia  = @recent.size - total_prueba
+          total_value     = @recent.sum { |o| o.order_items.first&.product&.price.to_f }
+        %>
+        <div class="pruebas-summary">
+          <div><strong><%= total_prueba %></strong><span>pruebas</span></div>
+          <div><strong><%= total_cortesia %></strong><span>cortesías</span></div>
+          <div><strong>$<%= format("%.2f", total_value) %></strong><span>valor total</span></div>
+        </div>
+        <table class="pruebas-table">
+          <thead>
+            <tr><th>Fecha</th><th>Admin</th><th>Tipo</th><th>Producto</th><th>Motivo</th></tr>
+          </thead>
+          <tbody>
+            <% @recent.each do |o| %>
+              <% item = o.order_items.first %>
+              <% note = item&.notes.to_s %>
+              <% is_prueba = note.start_with?("PRUEBA") %>
+              <% reason = note.sub(/^(PRUEBA|CORTESÍA) — admin\s*/, "").sub(/^\(/, "").sub(/\)$/, "") %>
+              <tr>
+                <td><%= o.completed_at.strftime("%d/%m %H:%M") %></td>
+                <td><%= o.user&.name %></td>
+                <td><span class="pruebas-tag pruebas-tag--<%= is_prueba ? 'test' : 'courtesy' %>"><%= is_prueba ? "Prueba" : "Cortesía" %></span></td>
+                <td><%= item&.product&.name %></td>
+                <td><%= reason.presence || "—" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="pruebas-empty">Sin pruebas ni cortesías registradas en los últimos 30 días.</p>
+      <% end %>
+    </section>
+  </div>
+</div>
