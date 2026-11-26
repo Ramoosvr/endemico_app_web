@@ -2,7 +2,7 @@ class Product < ApplicationRecord
   KINDS = %w[bebida comida postre].freeze
 
   SUBKINDS = {
-    "bebida" => %w[cafe_negro cafe_con_leche frios chai otro],
+    "bebida" => %w[cafe_negro cafe_con_leche frios chai refrescos otro],
     "comida" => %w[otro],
     "postre" => %w[otro]
   }.freeze
@@ -12,6 +12,7 @@ class Product < ApplicationRecord
     "cafe_con_leche" => "Café con leche",
     "frios"          => "Fríos",
     "chai"           => "Chai",
+    "refrescos"      => "Refrescos",
     "otro"           => "Otro"
   }.freeze
 

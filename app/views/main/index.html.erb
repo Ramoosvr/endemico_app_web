@@ -10,17 +10,57 @@
     <div class="pos-flash pos-flash--error"><%= flash[:alert] %></div>
   <% end %>
 
-  <% if @order.customer_name.present? %>
-    <div class="pos-order-name">
-      <span>Pedido para</span>
-      <strong><%= @order.customer_name %></strong>
-      <button type="button" class="pos-order-name-edit" onclick="document.getElementById('customer-name-dialog').showModal()">cambiar</button>
+  <div class="pos-top-row">
+    <% if @order.customer_name.present? %>
+      <div class="pos-order-name">
+        <span>Pedido para</span>
+        <strong><%= @order.customer_name %></strong>
+        <button type="button" class="pos-order-name-edit" onclick="document.getElementById('customer-name-dialog').show()">cambiar</button>
+      </div>
+    <% else %>
+      <div></div>
+    <% end %>
+
+    <div class="pos-top-actions">
+      <%= link_to pruebas_path, class: "pos-pruebas-btn" do %>
+        ☕ Pruebas y cortesías
+      <% end %>
+      <% if admin? %>
+        <button type="button" class="pos-withdraw-btn" onclick="document.getElementById('withdraw-dialog').showModal()">
+          💰 Retiro de caja
+        </button>
+      <% end %>
     </div>
+  </div>
+
+  <% if admin? %>
+    <dialog id="withdraw-dialog" class="cmz cname-dialog">
+      <%= form_with url: cash_withdrawal_path, method: :post, local: true, class: "cmz-form cname-form" do %>
+        <header class="cmz-head">
+          <h2 class="cmz-title">Retiro de caja</h2>
+          <button type="button" class="cmz-close" onclick="document.getElementById('withdraw-dialog').close()" aria-label="Cerrar">×</button>
+        </header>
+        <div class="cmz-body cname-body" style="display:grid; gap:14px;">
+          <label class="cname-label">
+            Monto que retiras
+            <input type="number" name="amount" min="0" step="0.01" placeholder="0.00" required autofocus class="cname-input" style="font-size:26px; text-align:right; font-family:Georgia,serif;">
+          </label>
+          <label class="cname-label">
+            Motivo (opcional)
+            <textarea name="reason" rows="2" placeholder="ej. depósito al banco, cambio para cajero…" class="cname-input" style="font-size:15px; font-family:inherit;"></textarea>
+          </label>
+        </div>
+        <footer class="cmz-foot cname-foot">
+          <button type="submit" class="auth-button cname-submit">Registrar retiro</button>
+        </footer>
+      <% end %>
+    </dialog>
   <% end %>
 
-  <dialog id="customer-name-dialog" class="cmz cname-dialog" <%= "open" if @order.customer_name.blank? && @order_items.empty? %>>
+  <dialog id="customer-name-dialog" class="cmz cname-dialog" data-controller="draggable" <%= "open" if @order.customer_name.blank? && @order_items.empty? %>>
     <%= form_with url: name_cart_path, method: :patch, local: true, class: "cmz-form cname-form" do %>
-      <header class="cmz-head">
+      <header class="cmz-head cname-head" data-draggable-target="handle">
+        <span class="cname-grip" aria-hidden="true"></span>
         <h2 class="cmz-title">Nuevo pedido</h2>
       </header>
       <div class="cmz-body cname-body">
@@ -34,7 +74,7 @@
                class="cname-input" />
       </div>
       <footer class="cmz-foot cname-foot">
-        <button type="submit" class="auth-button cname-submit">Comenzar pedido</button>
+        <button type="submit" class="auth-button cname-submit">pay</button>
       </footer>
     <% end %>
   </dialog>

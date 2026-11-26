@@ -1,34 +1,43 @@
 <%
   stock_available = product.stock.to_i > 0
   customizable    = product.customizable?
+  has_photo       = product.photo.attached?
   action          = if !stock_available then :soldout
                     elsif customizable then :open_modal
                     else :add_one end
+  card_classes    = ["pcard"]
+  card_classes << "pcard--btn"   if action != :soldout
+  card_classes << "pcard--noimg" unless has_photo
+  card_classes << "pcard--soldout" if action == :soldout
 %>
 
 <% card_body = capture do %>
-  <span class="pcard-photo">
-    <% if product.photo.attached? %>
+  <% if has_photo %>
+    <span class="pcard-photo">
       <%= image_tag product.photo, class: "pcard-photo-img", alt: product.name %>
-    <% else %>
-      <span class="pcard-photo-placeholder">
-        <span><%= product.name.first.upcase %></span>
-      </span>
-    <% end %>
+      <% unless stock_available %>
+        <span class="pcard-sold-out">Agotado</span>
+      <% end %>
+    </span>
+    <span class="pcard-body">
+      <span class="pcard-name"><%= product.name %></span>
+      <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+    </span>
+  <% else %>
+    <span class="pcard-textonly">
+      <span class="pcard-name"><%= product.name %></span>
+      <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+    </span>
     <% unless stock_available %>
-      <span class="pcard-sold-out">Agotado</span>
+      <span class="pcard-sold-out pcard-sold-out--textonly">Agotado</span>
     <% end %>
-  </span>
-  <span class="pcard-body">
-    <span class="pcard-name"><%= product.name %></span>
-    <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
-  </span>
+  <% end %>
 <% end %>
 
 <% case action %>
 <% when :open_modal %>
   <button type="button"
-          class="pcard pcard--btn"
+          class="<%= card_classes.join(" ") %>"
           data-product-id="<%= product.id %>"
           aria-label="Agregar <%= product.name %>"
           onclick="document.getElementById('customize-<%= product.id %>').showModal()">
@@ -38,13 +47,13 @@
   <%= button_to items_cart_path,
                 method: :post,
                 params: { product_id: product.id, quantity: 1 },
-                class: "pcard pcard--btn",
+                class: card_classes.join(" "),
                 form: { class: "pcard-form", data: { product_id: product.id } },
                 aria: { label: "Agregar #{product.name}" } do %>
     <%= card_body %>
   <% end %>
 <% else %>
-  <article class="pcard pcard--soldout" data-product-id="<%= product.id %>">
+  <article class="<%= card_classes.join(" ") %>" data-product-id="<%= product.id %>">
     <%= card_body %>
   </article>
 <% end %>

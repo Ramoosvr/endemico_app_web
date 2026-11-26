@@ -1,7 +1,7 @@
 class MainController < ApplicationController
   FEATURED_LIMIT = 50
 
-  BEBIDA_SUBKIND_ORDER = %w[cafe_negro cafe_con_leche frios chai otro].freeze
+  BEBIDA_SUBKIND_ORDER = %w[cafe_negro cafe_con_leche frios chai refrescos otro].freeze
 
   def index
     includes = [:product_ingredients, { option_groups: :option_choices }]

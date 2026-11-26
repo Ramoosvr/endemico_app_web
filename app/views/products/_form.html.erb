@@ -2,16 +2,7 @@
               url: product.persisted? ? product_path(product) : products_path,
               method: product.persisted? ? :patch : :post,
               local: true,
-              multipart: true,
               class: "pform" do |f| %>
-
-  <div class="pform-field">
-    <span class="pform-label">Foto</span>
-    <% if product.photo.attached? %>
-      <%= image_tag product.photo, class: "pform-photo-preview" %>
-    <% end %>
-    <%= f.file_field :photo, accept: "image/*", class: "pform-photo-file" %>
-  </div>
 
   <div class="pform-field">
     <%= f.label :name, "Nombre", class: "pform-label" %>
@@ -49,10 +40,10 @@
   <div class="pform-field">
     <%= f.label :ingredients_list, "Ingredientes", class: "pform-label" %>
     <%= f.text_area :ingredients_list,
-          rows: 6,
-          placeholder: "uno por línea&#10;pan&#10;jamón&#10;queso cheddar&#10;tomate&#10;lechuga",
+          rows: 5,
+          placeholder: "uno por línea&#10;pan&#10;jamón&#10;queso",
           class: "pform-input pform-textarea" %>
-    <p class="pform-hint">Uno por línea (o separados por coma). Estos son los que <strong>vienen por defecto</strong>. Extras y opciones los configurás abajo.</p>
+    <p class="pform-hint">Uno por línea (o separados por coma). Estos vienen por defecto. Extras y opciones los configurás abajo.</p>
   </div>
 
   <%= f.submit (product.persisted? ? "Guardar cambios" : "Agregar producto"), class: "pform-submit" %>

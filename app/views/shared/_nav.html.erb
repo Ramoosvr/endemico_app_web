@@ -3,21 +3,28 @@
   zone ||= :frontoffice
 
   front_links = [
-    [ "pedido",  pedido_path,         :pedido ],
-    [ "caja",    new_cash_count_path, :caja ],
-    [ "corte",   corte_path,          :corte ]
+    [ "pedido",      pedido_path,         :pedido ],
+    [ "pendientes",  pendientes_path,     :pendientes ],
+    [ "caja",        new_cash_count_path, :caja ],
+    [ "pruebas",     pruebas_path,        :pruebas ],
+    [ "merma",       merma_path,          :merma ]
   ]
-  front_links << [ "stock", insumos_path, :insumos ] if admin?
+  front_links << [ "corte", corte_path,    :corte ]   if admin?
+  front_links << [ "stock", insumos_path,  :insumos ] if admin?
 
   back_links = [
-    [ "productos", stock_path,       :stock ],
-    [ "insumos",   insumos_path,     :insumos ],
-    [ "caja",      cash_counts_path, :caja ],
-    [ "reportes",  reportes_path,    :reportes ],
-    [ "análisis",  analisis_path,    :analisis ],
-    [ "agente",    agente_path,      :agente ],
-    [ "ajustes",   ajustes_path,     :ajustes ],
-    [ "usuarios",  usuarios_path,    :usuarios ]
+    [ "productos",    stock_path,         :stock ],
+    [ "insumos",      insumos_path,       :insumos ],
+    [ "pruebas",      pruebas_path,       :pruebas ],
+    [ "devoluciones", devoluciones_path,  :devoluciones ],
+    [ "merma",        merma_path,         :merma ],
+    [ "caja",         cash_counts_path,   :caja ],
+    [ "reportes",     reportes_path,      :reportes ],
+    [ "análisis",     analisis_path,      :analisis ],
+    [ "agente",       agente_path,        :agente ],
+    [ "api",          api_tokens_path,    :api_tokens ],
+    [ "ajustes",      ajustes_path,       :ajustes ],
+    [ "usuarios",     usuarios_path,      :usuarios ]
   ]
 
   links =
@@ -36,7 +43,12 @@
   <% end %>
 
   <% links.each do |label, path, key| %>
-    <%= link_to label, path, class: "pos-nav-link #{"pos-nav-link--active" if active == key}" %>
+    <%= link_to path, class: "pos-nav-link #{"pos-nav-link--active" if active == key}" do %>
+      <%= label %>
+      <% if key == :pendientes && pending_orders_count > 0 %>
+        <span class="pos-nav-badge"><%= pending_orders_count %></span>
+      <% end %>
+    <% end %>
   <% end %>
 
   <% if zone == :frontoffice && admin? %>
