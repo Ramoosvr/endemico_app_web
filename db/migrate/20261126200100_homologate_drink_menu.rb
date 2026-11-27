@@ -10,6 +10,8 @@
 #   Sweeteners gain "Mascabado". Extras are counters: shot $30, syrup pump
 #   $10 (with flavor). Lattes add an optional "Sabor" (+$15).
 # - Sodas and Ciau have no extras; Ciau moves to Refrescos.
+# - Cups and lids come off stock: hot drinks use the 12 or 16 oz paper cup
+#   with lid and sleeve; cold drinks use the 16 oz clear cup and flat lid.
 #
 # Prices come from the "Mis precios" column of the Recetario sheet, except
 # Dirty chai, which keeps its current $145 / $165 for now.
@@ -63,6 +65,8 @@ class HomologateDrinkMenu < ActiveRecord::Migration[8.1]
 
   HOT_CUP_12 = [ "Vaso cartón 12 oz", "Tapa negra", "Manga de cartón" ].freeze
   HOT_CUP_16 = [ "Vaso cartón 16 oz", "Tapa negra", "Manga de cartón" ].freeze
+  COLD_CUP   = [ "Vaso transparente 16 oz", "Tapa plana transparente" ].freeze
+  OLD_COLD_CUP = "Vaso transparente 20 oz".freeze
 
   # name, subkind, 12 oz price, 16 oz price, products it replaces, chai?
   SIZED = [
@@ -112,6 +116,7 @@ class HomologateDrinkMenu < ActiveRecord::Migration[8.1]
       build_new_drinks
       LATTES.each { |name| add_latte_flavor(find_product(name)) }
       clean_sodas
+      add_cold_cups
       homologate_all_drinks
     end
   end
@@ -203,6 +208,15 @@ class HomologateDrinkMenu < ActiveRecord::Migration[8.1]
     group = ensure_group(product, "Sabor", mode: "single", required: false)
     PUMP_FLAVORS.each_with_index do |flavor, i|
       ensure_choice(group, flavor, LATTE_FLAVOR_PRICE, position: i)
+    end
+  end
+
+  # Every cold drink is served in a 16 oz clear cup with a flat lid.
+  def add_cold_cups
+    old_cup = find_ingredient(OLD_COLD_CUP)
+    Product.where(kind: "bebida", subkind: "frios", active: true).where.not(name: NO_EXTRAS).find_each do |product|
+      product.product_ingredients.where(ingredient_id: old_cup.id, default_included: true).delete_all if old_cup
+      add_cup_defaults(product, COLD_CUP)
     end
   end
 
