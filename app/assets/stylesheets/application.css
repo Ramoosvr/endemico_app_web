@@ -264,8 +264,12 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
   min-height: 0;
   gap: 24px;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  /* Comida and Postres only need two buttons per row; Bebidas gets the rest. */
+  grid-template-columns: minmax(0, 5fr) minmax(0, 1fr);
   grid-template-rows: 1fr 1fr;
+}
+.pos--main .pos-columns > .pos-section:nth-child(n+2) .pos-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 .pos--main .pos-columns > .pos-section:nth-child(1) {
   grid-column: 1;
@@ -292,17 +296,17 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
     grid-column: 1;
     grid-row: auto;
   }
-  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(14vmin, 1fr)) !important; }
+  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(6.5vmin, 1fr)) !important; }
 }
 @media (max-width: 760px) {
   .pos--main .pos-columns { gap: 14px; }
-  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; gap: 8px !important; }
+  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(61px, 1fr)) !important; gap: 8px !important; }
   .pos--main .pcard { padding: 8px !important; }
   .pos--main .pcard-name { font-size: 13px !important; }
   .pos--main .pcard-price { font-size: 13px !important; }
 }
 @media (max-width: 480px) {
-  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important; }
+  .pos--main .pos-grid { grid-template-columns: repeat(auto-fill, minmax(51px, 1fr)) !important; }
   .pos--main .pcard-name { font-size: 12px !important; }
   .pos--main .pcard-price { font-size: 12px !important; }
 }
@@ -323,7 +327,7 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  grid-template-columns: repeat(auto-fill, minmax(14vmin, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(6.5vmin, 1fr));
   grid-auto-rows: auto;
   gap: 1vmin;
   align-content: start;
@@ -399,7 +403,7 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
 .pos--catalog .catalog-section { margin-bottom: 14px !important; }
 .pos--catalog .catalog-section-title { font-size: 10px; margin: 0 0 8px; padding-bottom: 6px; letter-spacing: 1.6px; }
 .pos--catalog .pos-grid--4 {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(71px, 1fr)) !important;
   gap: 8px !important;
 }
 .pos--catalog .pos-grid--4 .pcard {
@@ -874,12 +878,18 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
   word-break: break-word;
   overflow-wrap: anywhere;
   hyphens: auto;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  /* Show the full name: no line clamp, the card grows instead. */
+  display: block;
   max-width: 100%;
 }
+/* Text-only cards size to their name instead of a fixed aspect ratio,
+   so long names ("Iced caramel macchiato 16 oz") are never clipped.
+   Grid rows stretch, so cards in the same row keep the same height. */
+.pos--main .pcard--noimg {
+  aspect-ratio: auto;
+  min-height: 10vmin;
+}
+.pos--catalog .pos-grid--4 .pcard--noimg .pcard-name { -webkit-line-clamp: none; }
 .pcard--noimg .pcard-price {
   font-size: clamp(10px, 1.15vmin, 13px);
   color: var(--terracotta-dark);
@@ -1834,7 +1844,7 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
 .ochoices { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
 .ochoice {
   display: grid;
-  grid-template-columns: 1fr 100px auto auto;
+  grid-template-columns: 1fr 100px auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 8px 0;
@@ -1886,6 +1896,8 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
 .ochoice-flag input:checked + span { color: var(--terracotta); }
 .ochoice-flag span { font-size: 16px; line-height: 1; }
 .ochoice-del { color: var(--ink-mute); }
+.ochoice-avail { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-mute); cursor: pointer; }
+.ochoice-avail input { width: 16px; height: 16px; accent-color: var(--terracotta); }
 .ochoice-del input:checked + span { color: var(--danger-text); }
 
 .ogroup-foot { display: flex; gap: 10px; align-items: center; justify-content: flex-start; }
@@ -2180,6 +2192,100 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
 .cmz-qty label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-mute); }
 .cmz-total { text-align: right; font-size: 13px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .06em; }
 .cmz-total strong { display: block; color: var(--terracotta-dark); font-size: 22px; letter-spacing: 0; text-transform: none; }
+
+/* Product grids use half-width columns: a normal button takes 2 and a
+   button with 12/16 oz takes 3 (1.5× wide), so both prices fit on one line. */
+.pos--main .pos-grid .pcard,
+.pos--catalog .pos-grid--4 .pcard { grid-column: span 2; }
+.pos--main .pos-grid .pcard--sized,
+.pos--catalog .pos-grid--4 .pcard--sized { grid-column: span 3; }
+.pcard-sizes { white-space: nowrap; }
+
+/* Size picker: two big buttons with the full price (12 oz / 16 oz) */
+.cmz-list--sizes { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.cmz-list--sizes .cmz-item { border-width: 2px; border-radius: 14px; }
+.cmz-list--sizes .cmz-check {
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 12px;
+  min-height: 84px;
+  text-align: center;
+}
+.cmz-list--sizes .cmz-check input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.cmz-size-name { font-size: 20px; font-weight: 600; color: var(--coffee); }
+.cmz-size-price { font-size: 16px; font-weight: 600; color: var(--terracotta-dark); font-variant-numeric: tabular-nums; }
+.cmz-list--sizes .cmz-item:has(> .cmz-check > input:checked) { background: var(--terracotta); border-color: var(--terracotta); }
+.cmz-list--sizes .cmz-item:has(> .cmz-check > input:checked) .cmz-size-name,
+.cmz-list--sizes .cmz-item:has(> .cmz-check > input:checked) .cmz-size-price { color: var(--cream); }
+
+/* Extras: counters (− n +) and optional choices */
+.cmz-extras { display: grid; gap: 10px; }
+.cmz-counter, .cmz-extra-group {
+  border: 1px solid rgba(43, 26, 16, .12);
+  border-radius: 12px;
+  background: var(--paper);
+  padding: 10px 12px;
+}
+.cmz-counter.is-active { border-color: var(--terracotta); background: rgba(196, 115, 76, .07); }
+.cmz-counter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cmz-counter-name { flex: 1 1 auto; margin: 0; font-size: 15px; font-weight: 500; color: var(--coffee); }
+.cmz-extra-group .cmz-counter-name { margin-bottom: 8px; }
+.cmz-counter-price { font-size: 13px; color: var(--ink-mute); white-space: nowrap; }
+.cmz-stepper { display: inline-flex; align-items: center; gap: 6px; }
+.cmz-stepper[hidden] { display: none; }
+.cmz-step {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(43, 26, 16, .18);
+  background: var(--cream);
+  color: var(--coffee);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.cmz-step:active { background: var(--cream-deep); transform: scale(.95); }
+.cmz-step-value {
+  width: 40px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  border: 0;
+  background: transparent;
+  color: var(--coffee);
+  font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+.cmz-step-value:focus { outline: none; }
+.cmz-counter-flavors { margin-top: 10px; }
+.cmz-counter-flavors[hidden] { display: none; }
+.cmz-counter-hint { margin: 0 0 8px; font-size: 12px; color: var(--ink-mute); }
+/* Options that ran out: visible but not selectable */
+.cmz-item--soldout { opacity: .5; }
+.cmz-item--soldout .cmz-check { cursor: not-allowed; }
+.cmz-soldout-tag {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-mute);
+  border: 1px dashed rgba(43, 26, 16, .3);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.cmz-error { margin: 8px 0 0; color: #c0392b; font-size: 14px; font-weight: 600; }
+.cmz-error[hidden] { display: none; }
+
+/* Stock: products hidden from the POS */
+.scard--inactive { opacity: .55; }
+.scard-kind--inactive { color: var(--ink-mute); margin-left: 6px; }
+.pform-check { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
+.pform-check input { width: 18px; height: 18px; accent-color: var(--terracotta); }
 
 /* ---------- FORM INSIDE + BUTTON (card's inline submit) ---------- */
 .pcard-add-form { display: contents; }
@@ -4347,7 +4453,7 @@ html, body { overflow-x: hidden; }
   .pos--main .pos-subgroups { gap: 6px; }
 
   .pos--main .pos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(10vmin, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(5vmin, 1fr));
     gap: 0.6vmin;
   }
   .pos--main .pcard {
@@ -4355,6 +4461,7 @@ html, body { overflow-x: hidden; }
     padding: 0.6vmin 0.8vmin;
     gap: 0.3vmin;
   }
+  .pos--main .pcard--noimg { aspect-ratio: auto; min-height: 7vmin; }
   .pos--main .pcard-name { font-size: clamp(11px, 1.15vmin, 13px); }
   .pos--main .pcard-price { font-size: clamp(11px, 1.1vmin, 13px); }
 
@@ -4365,10 +4472,11 @@ html, body { overflow-x: hidden; }
 /* iPad portrait (~768-1024px wide, tall) — also tightens */
 @media (max-width: 1023px) and (orientation: portrait) {
   .pos--main .pos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important;
     gap: 10px;
   }
   .pos--main .pcard { aspect-ratio: 4 / 3; }
+  .pos--main .pcard--noimg { aspect-ratio: auto; min-height: 96px; }
   .pos--main .pos-section-btn { padding: 12px 16px; font-size: 17px; }
 }
 

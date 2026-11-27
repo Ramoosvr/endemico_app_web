@@ -23,7 +23,12 @@ class OptionGroupsController < ApplicationController
   end
 
   def destroy
-    @option_group.destroy
+    if OrderItemOptionChoice.where(option_choice_id: OptionChoice.where(option_group_id: @option_group.id).select(:id)).exists?
+      # Past sales point to these choices: hide the group instead of deleting it.
+      @option_group.update!(active: false)
+    else
+      @option_group.destroy
+    end
     redirect_to product_path(@product), notice: "Grupo eliminado."
   end
 
@@ -40,7 +45,7 @@ class OptionGroupsController < ApplicationController
   def permitted_params
     params.require(:option_group).permit(
       :name, :required, :selection_mode,
-      option_choices_attributes: [:id, :name, :extra_price, :default_selected, :_destroy]
+      option_choices_attributes: [:id, :name, :extra_price, :default_selected, :available, :_destroy]
     )
   end
 end

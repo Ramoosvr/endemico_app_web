@@ -9,6 +9,9 @@
   card_classes << "pcard--btn"   if action != :soldout
   card_classes << "pcard--noimg" unless has_photo
   card_classes << "pcard--soldout" if action == :soldout
+  size_group      = product.option_groups.find(&:size?)
+  sizes           = size_group ? size_group.option_choices.select(&:available) : []
+  card_classes << "pcard--sized" if sizes.size > 1
 %>
 
 <% card_body = capture do %>
@@ -21,12 +24,20 @@
     </span>
     <span class="pcard-body">
       <span class="pcard-name"><%= product.name %></span>
-      <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+      <% if sizes.size > 1 %>
+        <span class="pcard-price pcard-sizes"><%= sizes.map { |oc| "$#{format("%.2f", product.price.to_d + oc.extra_price.to_d)}" }.join(" / ") %></span>
+      <% else %>
+        <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+      <% end %>
     </span>
   <% else %>
     <span class="pcard-textonly">
       <span class="pcard-name"><%= product.name %></span>
-      <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+      <% if sizes.size > 1 %>
+        <span class="pcard-price pcard-sizes"><%= sizes.map { |oc| "$#{format("%.2f", product.price.to_d + oc.extra_price.to_d)}" }.join(" / ") %></span>
+      <% else %>
+        <span class="pcard-price">$<%= format("%.2f", product.price) %></span>
+      <% end %>
     </span>
     <% unless stock_available %>
       <span class="pcard-sold-out pcard-sold-out--textonly">Agotado</span>

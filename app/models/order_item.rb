@@ -10,7 +10,7 @@ class OrderItem < ApplicationRecord
 
   def recalc_line_total!
     extras_sum  = extras.sum(:extra_price)
-    options_sum = chosen_options.sum(:extra_price)
+    options_sum = chosen_options.sum("extra_price * quantity")
     mods = extras_sum + options_sum
     total = (unit_price.to_d + mods.to_d) * quantity.to_i
     update!(modifiers_price: mods, line_total: total)
@@ -20,7 +20,7 @@ class OrderItem < ApplicationRecord
     lines = []
     removed_ingredients.each { |r| lines << "sin #{r.ingredient_name}" }
     extras.each               { |e| lines << "+ #{e.ingredient_name}" }
-    chosen_options.each       { |c| lines << "#{c.option_group_name}: #{c.choice_name}" }
+    chosen_options.each       { |c| lines << c.label }
     lines
   end
 end

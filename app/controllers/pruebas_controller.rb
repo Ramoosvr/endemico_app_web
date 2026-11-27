@@ -1,6 +1,6 @@
 class PruebasController < ApplicationController
   def index
-    @products = Product.includes(:product_ingredients, option_groups: :option_choices)
+    @products = Product.active.includes(:product_ingredients, option_groups: :option_choices)
                         .order(:kind, :name)
                         .group_by(&:kind)
 

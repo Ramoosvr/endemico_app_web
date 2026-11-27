@@ -13,7 +13,7 @@
               <%= f.text_field :name, required: true, placeholder: "Nombre del grupo", class: "ogroup-name" %>
               <div class="ogroup-flags">
                 <%= f.select :selection_mode,
-                      [["elegir una", "single"], ["elegir varias", "multiple"]],
+                      [["elegir una", "single"], ["elegir varias", "multiple"], ["contador − n +", "counter"]],
                       {},
                       class: "ogroup-mode" %>
                 <label class="ogroup-req">
@@ -39,6 +39,11 @@
                       <%= cf.check_box :default_selected %>
                       <span>★</span>
                     </label>
+                    <label class="ochoice-avail" title="Desmárcalo cuando se acabe: se ve como agotado y no se puede elegir">
+                      <%= cf.hidden_field :available, value: "0" %>
+                      <%= cf.check_box :available, {}, "1", nil %>
+                      <span>hay</span>
+                    </label>
                     <label class="ochoice-del" title="Borrar al guardar">
                       <%= cf.check_box :_destroy %>
                       <span>×</span>
@@ -59,6 +64,7 @@
                       <%= cf.check_box :default_selected %>
                       <span>★</span>
                     </label>
+                    <span></span>
                     <span></span>
                   </li>
                 <% end %>
@@ -84,7 +90,7 @@
         <%= f.text_field :name, required: true, placeholder: "ej. Tipo de leche", class: "ogroup-name" %>
         <div class="ogroup-flags">
           <%= f.select :selection_mode,
-                [["elegir una", "single"], ["elegir varias", "multiple"]],
+                [["elegir una", "single"], ["elegir varias", "multiple"], ["contador − n +", "counter"]],
                 { selected: "single" },
                 class: "ogroup-mode" %>
           <label class="ogroup-req">
@@ -109,6 +115,7 @@
                 <%= cf.check_box :default_selected %>
                 <span>★</span>
               </label>
+              <span></span>
               <span></span>
             </li>
           <% end %>

@@ -96,7 +96,7 @@ class Order < ApplicationRecord
     item.chosen_options.each do |cop|
       cop.option_choice.option_choice_ingredients.each do |oci|
         next if oci.quantity_per_unit.to_d.zero?
-        consumed[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty
+        consumed[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty * cop.quantity.to_i
       end
     end
 
@@ -130,7 +130,7 @@ class Order < ApplicationRecord
     item.chosen_options.each do |cop|
       cop.option_choice.option_choice_ingredients.each do |oci|
         next if oci.quantity_per_unit.to_d.zero?
-        restored[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty
+        restored[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty * cop.quantity.to_i
       end
     end
 

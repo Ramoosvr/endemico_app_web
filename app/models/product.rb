@@ -21,7 +21,7 @@ class Product < ApplicationRecord
 
   has_many :product_ingredients, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
   has_many :ingredients, through: :product_ingredients
-  has_many :option_groups, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
+  has_many :option_groups, -> { where(active: true).order(:position, :id) }, dependent: :destroy, inverse_of: :product
 
   attr_accessor :ingredients_list
 
@@ -33,6 +33,7 @@ class Product < ApplicationRecord
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :stock, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
+  scope :active,   -> { where(active: true) }
   scope :bebidas,  -> { where(kind: "bebida").order(:name) }
   scope :comidas,  -> { where(kind: "comida").order(:name) }
   scope :postres,  -> { where(kind: "postre").order(:name) }
