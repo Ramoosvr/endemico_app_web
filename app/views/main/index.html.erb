@@ -1,6 +1,9 @@
 <% content_for :title, "Endémico POS" %>
 
-<div class="pos pos--main">
+<div class="pos pos--main"
+     data-controller="name-prompt"
+     data-name-prompt-needed-value="<%= @order.customer_name.blank? && @order_items.empty? %>"
+     data-name-prompt-open-value="<%= params[:abrir].to_i %>">
   <%= render "shared/header", heading: "Endemico", active: :main, zone: :frontoffice %>
 
   <% if flash[:notice] %>
@@ -15,7 +18,7 @@
       <div class="pos-order-name">
         <span>Pedido para</span>
         <strong><%= @order.customer_name %></strong>
-        <button type="button" class="pos-order-name-edit" onclick="document.getElementById('customer-name-dialog').show()">cambiar</button>
+        <button type="button" class="pos-order-name-edit" data-action="name-prompt#change">cambiar</button>
       </div>
     <% else %>
       <div></div>
@@ -57,11 +60,13 @@
     </dialog>
   <% end %>
 
-  <dialog id="customer-name-dialog" class="cmz cname-dialog" data-controller="draggable" <%= "open" if @order.customer_name.blank? && @order_items.empty? %>>
+  <%# Opens when the first product of a new order is tapped; then that product continues. %>
+  <dialog id="customer-name-dialog" class="cmz cname-dialog cname-dialog--center" data-name-prompt-target="dialog">
     <%= form_with url: name_cart_path, method: :patch, local: true, class: "cmz-form cname-form" do %>
-      <header class="cmz-head cname-head" data-draggable-target="handle">
-        <span class="cname-grip" aria-hidden="true"></span>
+      <%= hidden_field_tag :product_id, nil, data: { name_prompt_target: "product" } %>
+      <header class="cmz-head cname-head">
         <h2 class="cmz-title">Nuevo pedido</h2>
+        <button type="button" class="cmz-close" data-action="name-prompt#cancel" aria-label="Cerrar">×</button>
       </header>
       <div class="cmz-body cname-body">
         <label class="cname-label" for="customer_name_input">¿A nombre de quién?</label>
@@ -74,7 +79,7 @@
                class="cname-input" />
       </div>
       <footer class="cmz-foot cname-foot">
-        <button type="submit" class="auth-button cname-submit">pay</button>
+        <button type="submit" class="auth-button cname-submit">Continuar</button>
       </footer>
     <% end %>
   </dialog>

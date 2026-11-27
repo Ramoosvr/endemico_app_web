@@ -5,10 +5,21 @@ class CartsController < ApplicationController
     redirect_to main_path
   end
 
+  # Called from the "¿A nombre de quién?" step. When it was opened by tapping a
+  # product, continue with it: open its pop-up, or add it if it has no options.
   def set_name
     name = params[:customer_name].to_s.strip.presence
     @order.update(customer_name: name)
-    redirect_to main_path
+
+    product = Product.active.find_by(id: params[:product_id])
+    if product.nil? || product.stock.to_i <= 0
+      redirect_to main_path
+    elsif product.customizable?
+      redirect_to main_path(abrir: product.id)
+    else
+      add_plain_item(product)
+      redirect_to main_path, notice: "#{product.name} agregado."
+    end
   end
 
   def add_item
@@ -159,6 +170,17 @@ class CartsController < ApplicationController
   private
 
   MAX_COUNTER = 10
+
+  def add_plain_item(product)
+    OrderItem.transaction do
+      item = @order.order_items.create!(
+        product: product, quantity: 1, unit_price: product.price,
+        modifiers_price: 0, line_total: product.price
+      )
+      item.recalc_line_total!
+      @order.recalc_total!
+    end
+  end
 
   # Counter groups arrive as counter_qty[group_id] = n and, when the group has
   # several choices (e.g. pump flavors), counter_choice[group_id] = choice id.
