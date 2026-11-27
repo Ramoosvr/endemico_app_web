@@ -3,7 +3,7 @@ class ProductsController < ApplicationController
   before_action :set_product, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @products = Product.order(:kind, :name)
+    @products = Product.order(active: :desc, kind: :asc, name: :asc)
     @product = Product.new
   end
 
@@ -53,6 +53,6 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.require(:product).permit(:name, :kind, :subkind, :cost, :price, :stock, :photo, :ingredients_list)
+    params.require(:product).permit(:name, :kind, :subkind, :cost, :price, :stock, :photo, :ingredients_list, :active)
   end
 end

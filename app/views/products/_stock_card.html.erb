@@ -3,7 +3,7 @@
 <% extras   = ingredients.reject { |pi| pi.default_included } %>
 <% options  = product.option_groups.to_a %>
 
-<article class="scard scard--<%= product.kind %>">
+<article class="scard scard--<%= product.kind %><%= " scard--inactive" unless product.active %>">
   <%= link_to product_path(product), class: "scard-face", aria: { label: "Configurar #{product.name}" } do %>
     <div class="scard-thumb">
       <% if product.photo.attached? %>
@@ -17,6 +17,7 @@
       <div class="scard-headline">
         <h3 class="scard-name"><%= product.name %></h3>
         <span class="scard-kind scard-kind--<%= product.kind %>"><%= product.kind %></span>
+        <% unless product.active %><span class="scard-kind scard-kind--inactive">oculto</span><% end %>
       </div>
       <div class="scard-price">
         <span class="scard-price-main">$<%= format("%.2f", product.price) %></span>

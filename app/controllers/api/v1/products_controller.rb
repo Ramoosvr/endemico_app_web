@@ -49,7 +49,7 @@ module Api
       def product_params
         params.require(:product).permit(
           :external_id, :name, :kind, :subkind, :price, :cost,
-          :stock, :featured
+          :stock, :featured, :active
         )
       end
 
@@ -64,6 +64,7 @@ module Api
           cost: p.cost.to_f,
           stock: p.stock.to_i,
           featured: p.featured,
+          active: p.active,
           customizable: p.customizable?,
           ingredients: p.product_ingredients.map { |pi|
             {

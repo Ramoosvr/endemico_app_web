@@ -11,7 +11,7 @@ class CatalogoController < ApplicationController
       redirect_to(main_path, alert: "Categoría desconocida.") and return
     end
 
-    products = Product.where(kind: @kind)
+    products = Product.active.where(kind: @kind)
                       .includes(:product_ingredients, option_groups: :option_choices)
                       .order(:subkind, :name)
 

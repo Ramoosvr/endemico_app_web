@@ -20,7 +20,7 @@ class MainController < ApplicationController
   private
 
   def featured_or_fallback(kind, includes)
-    scope = Product.where(kind: kind).includes(includes)
+    scope = Product.active.where(kind: kind).includes(includes)
     featured = scope.where(featured: true).order(:name).limit(FEATURED_LIMIT).to_a
     return featured if featured.any?
     scope.order(:name).limit(FEATURED_LIMIT).to_a

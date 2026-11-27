@@ -13,6 +13,10 @@ class Ingredient < ApplicationRecord
     otros
   ].freeze
 
+  # Cups, lids and sleeves: consumed from stock but not shown to the barista
+  # in the "Incluye" list of the order pop-up.
+  PACKAGING_CATEGORIES = %w[vasos tapas_mangas].freeze
+
   CATEGORY_LABELS = {
     "vasos"         => "Vasos",
     "tapas_mangas"  => "Tapas y mangas",

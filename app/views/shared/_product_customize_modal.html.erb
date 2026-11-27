@@ -1,5 +1,5 @@
 <dialog id="customize-<%= product.id %>" class="cmz" data-controller="customize" data-customize-base-price-value="<%= product.price.to_f %>">
-  <%= form_with url: items_cart_path, method: :post, local: true, class: "cmz-form", data: { customize_target: "form" } do %>
+  <%= form_with url: items_cart_path, method: :post, local: true, class: "cmz-form", data: { customize_target: "form", action: "submit->customize#validate" } do %>
     <%= hidden_field_tag :product_id, product.id %>
     <%= hidden_field_tag :quantity, 1 %>
 
@@ -9,70 +9,119 @@
     </header>
 
     <div class="cmz-body">
-      <% defaults = product.product_ingredients.select { |pi| pi.default_included } %>
+      <% packaging = Ingredient::PACKAGING_CATEGORIES %>
+      <% defaults = product.product_ingredients.select { |pi| pi.default_included && !packaging.include?(pi.ingredient.category) } %>
       <% extras   = product.product_ingredients.reject { |pi| pi.default_included } %>
+      <% groups   = product.option_groups.to_a %>
+      <% main_groups  = groups.reject(&:extra?) %>
+      <% extra_groups = groups.select(&:extra?) %>
 
-      <%# Required single-choice option groups first (Temperatura, Leche, Shots, Endulzante) %>
-      <% product.option_groups.each do |og| %>
+      <%# Required choices first: Tamaño (big buttons), Sabor, Leche, Endulzante %>
+      <% main_groups.each do |og| %>
         <section class="cmz-section">
           <h3 class="cmz-section-title">
             <%= og.name %>
             <% if og.required %><span class="cmz-req">obligatorio</span><% end %>
           </h3>
-          <ul class="cmz-list <%= og.single? ? 'cmz-list--chips' : '' %>">
-            <% og.option_choices.each do |oc| %>
-              <li class="cmz-item">
-                <label class="cmz-check">
-                  <% if og.single? %>
+          <% if og.size? %>
+            <% preselected = og.preselected_choice %>
+            <ul class="cmz-list cmz-list--sizes">
+              <% og.option_choices.each do |oc| %>
+                <li class="cmz-item<%= " cmz-item--soldout" unless oc.available %>">
+                  <label class="cmz-check">
                     <input type="radio"
                            name="single_choice_<%= og.id %>"
                            data-group-id="<%= og.id %>"
                            data-choice-id="<%= oc.id %>"
                            data-extra-price="<%= oc.extra_price.to_f %>"
                            data-action="change->customize#selectSingle"
-                           <%= "checked" if oc.default_selected %>>
-                  <% else %>
-                    <input type="checkbox"
-                           name="option_choice_ids[]"
-                           value="<%= oc.id %>"
-                           data-extra-price="<%= oc.extra_price.to_f %>"
-                           data-action="change->customize#recalc"
-                           <%= "checked" if oc.default_selected %>>
-                  <% end %>
-                  <span class="cmz-item-name"><%= oc.name %></span>
-                  <% if oc.extra_price.to_f > 0 %>
-                    <span class="cmz-item-price">+$<%= format("%.2f", oc.extra_price) %></span>
-                  <% end %>
-                </label>
-              </li>
-            <% end %>
-          </ul>
-          <% if og.single? %>
-            <%= hidden_field_tag "option_choice_ids[]", (og.option_choices.find { |c| c.default_selected }&.id), data: { group_hidden: og.id } %>
+                           <%= "checked" if oc == preselected %>
+                           <%= "disabled" unless oc.available %>>
+                    <span class="cmz-size-name"><%= oc.name %></span>
+                    <% if oc.available %>
+                      <span class="cmz-size-price">$<%= format("%.2f", product.price.to_d + oc.extra_price.to_d) %></span>
+                    <% else %>
+                      <span class="cmz-soldout-tag">agotado</span>
+                    <% end %>
+                  </label>
+                </li>
+              <% end %>
+            </ul>
+            <%= hidden_field_tag "option_choice_ids[]", preselected&.id, data: { group_hidden: og.id } %>
+          <% else %>
+            <%= render "shared/customize_choice_list", og: og %>
           <% end %>
         </section>
       <% end %>
 
-      <% if extras.any? %>
+      <% if extra_groups.any? || extras.any? %>
         <section class="cmz-section">
           <h3 class="cmz-section-title">Extras</h3>
-          <ul class="cmz-list cmz-list--chips">
-            <% extras.each do |pi| %>
-              <li class="cmz-item">
-                <label class="cmz-check">
-                  <input type="checkbox"
-                         name="extra_product_ingredient_ids[]"
-                         value="<%= pi.id %>"
-                         data-action="change->customize#recalc"
-                         data-extra-price="<%= pi.extra_price.to_f %>">
-                  <span class="cmz-item-name"><%= pi.ingredient.name %></span>
-                  <% if pi.extra_price.to_f > 0 %>
-                    <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
+          <div class="cmz-extras">
+            <% extra_groups.each do |og| %>
+              <% if og.counter? %>
+                <% choices = og.option_choices.to_a %>
+                <% sold_out = choices.none?(&:available) %>
+                <div class="cmz-counter<%= " cmz-item--soldout" if sold_out %>" data-counter-group="<%= og.id %>" data-extra-price="<%= choices.first&.extra_price.to_f %>">
+                  <div class="cmz-counter-row">
+                    <span class="cmz-counter-name"><%= og.name %></span>
+                    <% if sold_out %>
+                      <span class="cmz-soldout-tag">agotado</span>
+                    <% else %>
+                    <span class="cmz-counter-price">+$<%= format("%.2f", choices.first&.extra_price.to_f) %> c/u</span>
+                    <% end %>
+                    <div class="cmz-stepper"<%= " hidden" if sold_out %>>
+                      <button type="button" class="cmz-step" data-action="customize#decrement" aria-label="Quitar uno">−</button>
+                      <input type="text" readonly inputmode="none" name="counter_qty[<%= og.id %>]" value="0" class="cmz-step-value" data-counter-qty aria-label="Cantidad de <%= og.name %>">
+                      <button type="button" class="cmz-step" data-action="customize#increment" aria-label="Agregar uno">+</button>
+                    </div>
+                  </div>
+                  <% if choices.size > 1 %>
+                    <div class="cmz-counter-flavors" hidden>
+                      <p class="cmz-counter-hint">¿Qué sabor?</p>
+                      <ul class="cmz-list cmz-list--chips">
+                        <% choices.each do |oc| %>
+                          <li class="cmz-item<%= " cmz-item--soldout" unless oc.available %>">
+                            <label class="cmz-check">
+                              <input type="radio" name="counter_choice[<%= og.id %>]" value="<%= oc.id %>" data-action="change->customize#pickFlavor"<%= " disabled" unless oc.available %>>
+                              <span class="cmz-item-name"><%= oc.name %></span>
+                              <% unless oc.available %><span class="cmz-soldout-tag">agotado</span><% end %>
+                            </label>
+                          </li>
+                        <% end %>
+                      </ul>
+                    </div>
                   <% end %>
-                </label>
-              </li>
+                </div>
+              <% else %>
+                <div class="cmz-extra-group">
+                  <p class="cmz-counter-name"><%= og.name %></p>
+                  <%= render "shared/customize_choice_list", og: og %>
+                </div>
+              <% end %>
             <% end %>
-          </ul>
+
+            <% if extras.any? %>
+              <ul class="cmz-list cmz-list--chips">
+                <% extras.each do |pi| %>
+                  <li class="cmz-item">
+                    <label class="cmz-check">
+                      <input type="checkbox"
+                             name="extra_product_ingredient_ids[]"
+                             value="<%= pi.id %>"
+                             data-action="change->customize#recalc"
+                             data-extra-price="<%= pi.extra_price.to_f %>">
+                      <span class="cmz-item-name"><%= pi.ingredient.name %></span>
+                      <% if pi.extra_price.to_f > 0 %>
+                        <span class="cmz-item-price">+$<%= format("%.2f", pi.extra_price) %></span>
+                      <% end %>
+                    </label>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+          <p class="cmz-error" data-customize-target="error" hidden></p>
         </section>
       <% end %>
 

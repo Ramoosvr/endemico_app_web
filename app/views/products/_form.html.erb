@@ -55,5 +55,16 @@
     <p class="pform-hint">Uno por línea (o separados por coma). Estos vienen por defecto. Extras y opciones los configurás abajo.</p>
   </div>
 
+  <% if product.persisted? %>
+    <div class="pform-field">
+      <label class="pform-check">
+        <%= f.hidden_field :active, value: "0" %>
+        <%= f.check_box :active, {}, "1", nil %>
+        <span>Visible en el POS</span>
+      </label>
+      <p class="pform-hint">Desmárcalo para dejar de venderlo sin borrar sus ventas pasadas.</p>
+    </div>
+  <% end %>
+
   <%= f.submit (product.persisted? ? "Guardar cambios" : "Agregar producto"), class: "pform-submit" %>
 <% end %>

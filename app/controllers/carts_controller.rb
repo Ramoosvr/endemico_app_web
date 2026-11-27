@@ -23,7 +23,15 @@ class CartsController < ApplicationController
 
     extras      = product.product_ingredients.where(id: extra_pi_ids)
     removables  = product.product_ingredients.defaults.where(ingredient_id: remove_ids)
-    choices     = OptionChoice.joins(option_group: :product).where(products: { id: product.id }, id: choice_ids)
+    choices     = OptionChoice.joins(option_group: :product)
+                              .where(products: { id: product.id }, id: choice_ids)
+                              .where(option_groups: { active: true }, active: true, available: true)
+                              .where.not(option_groups: { selection_mode: "counter" })
+    counters    = counter_choices_for(product)
+    if counters.nil?
+      redirect_back fallback_location: main_path, alert: "Elige el sabor del extra antes de agregarlo."
+      return
+    end
 
     OrderItem.transaction do
       item = @order.order_items.create!(
@@ -56,6 +64,16 @@ class CartsController < ApplicationController
           option_group_name: oc.option_group.name,
           choice_name: oc.name,
           extra_price: oc.extra_price
+        )
+      end
+
+      counters.each do |oc, count|
+        item.chosen_options.create!(
+          option_choice_id: oc.id,
+          option_group_name: oc.option_group.name,
+          choice_name: oc.name,
+          extra_price: oc.extra_price,
+          quantity: count
         )
       end
 
@@ -139,6 +157,35 @@ class CartsController < ApplicationController
   end
 
   private
+
+  MAX_COUNTER = 10
+
+  # Counter groups arrive as counter_qty[group_id] = n and, when the group has
+  # several choices (e.g. pump flavors), counter_choice[group_id] = choice id.
+  # Returns [[choice, n], ...], or nil when a flavor is missing.
+  def counter_choices_for(product)
+    qtys = params.fetch(:counter_qty, {}).to_unsafe_h
+    picks = params.fetch(:counter_choice, {}).to_unsafe_h
+    groups = product.option_groups.where(selection_mode: "counter").includes(:option_choices)
+
+    groups.filter_map do |og|
+      count = qtys[og.id.to_s].to_i.clamp(0, MAX_COUNTER)
+      next if count.zero?
+
+      choices = og.option_choices.select(&:available)
+      return nil if choices.empty?
+
+      choice =
+        if og.option_choices.size == 1
+          choices.first
+        else
+          choices.find { |c| c.id == picks[og.id.to_s].to_i }
+        end
+      return nil if choice.nil?
+
+      [ choice, count ]
+    end
+  end
 
   def set_order
     @order = current_order
