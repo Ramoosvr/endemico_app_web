@@ -11,7 +11,7 @@ class CreateOrderItemOptionChoices < ActiveRecord::Migration[8.1]
     end
 
     add_index :order_item_option_choices,
-              [:order_item_id, :option_choice_id],
+              [ :order_item_id, :option_choice_id ],
               unique: true,
               name: "index_oi_choices_on_item_and_choice"
   end

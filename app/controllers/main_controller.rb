@@ -4,7 +4,7 @@ class MainController < ApplicationController
   BEBIDA_SUBKIND_ORDER = %w[cafe_negro cafe_con_leche chai_caliente chai_frio frios refrescos otro].freeze
 
   def index
-    includes = [:product_ingredients, { option_groups: :option_choices }]
+    includes = [ :product_ingredients, { option_groups: :option_choices } ]
 
     @bebidas = featured_or_fallback("bebida", includes)
     @bebidas_by_subkind = @bebidas

@@ -6,7 +6,7 @@ class SettingsController < ApplicationController
   end
 
   def update
-    submitted = params.fetch(:settings, {}).permit!.to_h
+    submitted = params.fetch(:settings, {}).permit(*Setting::DEFAULTS.keys).to_h
     submitted.each do |key, value|
       next unless Setting::DEFAULTS.key?(key)
       Setting.set(key, value)

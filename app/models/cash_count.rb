@@ -2,7 +2,7 @@ class CashCount < ApplicationRecord
   KINDS = %w[apertura cierre].freeze
   SHIFTS = %w[manana tarde].freeze
   SHIFT_LABELS = { "manana" => "Mañana (6:00 – 14:00)", "tarde" => "Tarde (14:00 – 21:00)" }.freeze
-  DENOMINATIONS = [1, 2, 5, 10, 20, 50, 100, 200, 500].freeze
+  DENOMINATIONS = [ 1, 2, 5, 10, 20, 50, 100, 200, 500 ].freeze
 
   belongs_to :user
 
@@ -49,7 +49,7 @@ class CashCount < ApplicationRecord
     return {} unless range
 
     orders = Order.completed.where(completed_at: range)
-    totals = Order::PAYMENT_METHODS.to_h { |m| [m, 0.to_d] }
+    totals = Order::PAYMENT_METHODS.to_h { |m| [ m, 0.to_d ] }
     orders.each do |o|
       key = o.payment_method.presence
       totals[key] += o.total if key && totals.key?(key)

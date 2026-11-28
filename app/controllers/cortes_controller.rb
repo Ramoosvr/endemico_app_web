@@ -13,7 +13,7 @@ class CortesController < ApplicationController
 
     base = Order.completed
                 .where(completed_at: @range_start..@range_end)
-                .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
+                .includes(:user, order_items: [ :product, :removed_ingredients, :extras, :chosen_options ])
 
     @all_users_in_range = User.where(id: base.distinct.pluck(:user_id)).order(:name)
 
@@ -43,7 +43,7 @@ class CortesController < ApplicationController
 
     orders = Order.completed
                   .where(completed_at: range_start..range_end)
-                  .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
+                  .includes(:user, order_items: [ :product, :removed_ingredients, :extras, :chosen_options ])
                   .order(completed_at: :asc)
 
     if orders.empty?
@@ -118,17 +118,17 @@ class CortesController < ApplicationController
 
   def period_range(date, period)
     case period
-    when "week"  then [date.beginning_of_week.beginning_of_day, date.end_of_week.end_of_day]
-    when "month" then [date.beginning_of_month.beginning_of_day, date.end_of_month.end_of_day]
-    else              [date.beginning_of_day, date.end_of_day]
+    when "week"  then [ date.beginning_of_week.beginning_of_day, date.end_of_week.end_of_day ]
+    when "month" then [ date.beginning_of_month.beginning_of_day, date.end_of_month.end_of_day ]
+    else              [ date.beginning_of_day, date.end_of_day ]
     end
   end
 
   def navigation_dates(date, period)
     case period
-    when "week"  then [date - 7, date + 7]
-    when "month" then [date.prev_month, date.next_month]
-    else              [date - 1, date + 1]
+    when "week"  then [ date - 7, date + 7 ]
+    when "month" then [ date.prev_month, date.next_month ]
+    else              [ date - 1, date + 1 ]
     end
   end
 

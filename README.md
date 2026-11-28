@@ -4,7 +4,7 @@ Punto de venta Rails 8 para la cafetería Endémico. Corre en Fly.io (app `endem
 
 ## Stack
 
-- **Rails** 8.1.3 · **Ruby** 3.3.11
+- **Rails** 8.1.3 · **Ruby** 3.3.14
 - **SQLite** (producción incluida, montada en volumen Fly `/data`)
 - **Hotwire** (Turbo + Stimulus), **Importmap**, **Propshaft**
 - **Solid Queue / Cache / Cable** — todo sobre SQLite

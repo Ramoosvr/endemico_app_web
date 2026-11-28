@@ -1,5 +1,5 @@
 class RefundsController < ApplicationController
-  before_action :require_admin!, only: [:index]
+  before_action :require_admin!, only: [ :index ]
 
   def index
     @from = parse_date(params[:from]) || 24.hours.ago
@@ -23,9 +23,15 @@ class RefundsController < ApplicationController
       redirect_back_or_to(pendientes_path, allow_other_host: false, alert: "PIN inválido. Pide al admin el código de autorización.") and return
     end
 
+    if params[:prepared].blank?
+      redirect_back_or_to(pendientes_path, allow_other_host: false, alert: "Indica si el pedido ya se preparó.") and return
+    end
+
+    prepared = ActiveModel::Type::Boolean.new.cast(params[:prepared])
     order = Order.completed.find(params[:order_id])
-    order.refund!(reason: params[:reason], user: current_user)
-    redirect_back_or_to(pendientes_path, allow_other_host: false, notice: "Pedido ##{order.id} devuelto. Stock restaurado.")
+    order.refund!(reason: params[:reason], user: current_user, prepared: prepared)
+    detail = prepared ? "Los insumos se registraron como merma." : "Los insumos regresaron al stock."
+    redirect_back_or_to(pendientes_path, allow_other_host: false, notice: "Pedido ##{order.id} devuelto. #{detail}")
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to(pendientes_path, allow_other_host: false, alert: "El pedido no existe o ya fue devuelto.")
   rescue ArgumentError, ActiveRecord::RecordInvalid => e

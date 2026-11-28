@@ -1,0 +1,26 @@
+<% if movements.empty? %>
+  <p class="pos-empty">Sin movimientos todavía.</p>
+<% else %>
+  <table class="pruebas-table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <% if show_ingredient %><th>Insumo</th><% end %>
+        <th>Tipo</th><th>Cantidad</th><th>Queda</th><th>Pedido</th><th>Quién / nota</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% movements.each do |m| %>
+        <tr>
+          <td><%= l(m.created_at.in_time_zone, format: "%d/%m %H:%M") %></td>
+          <% if show_ingredient %><td><%= m.ingredient.name %></td><% end %>
+          <td><%= m.kind_label %></td>
+          <td><%= m.quantity.positive? ? "+" : "" %><%= number_with_delimiter(m.quantity.to_f.round(3)) %> <%= m.ingredient.unit %></td>
+          <td><%= number_with_delimiter(m.stock_after.to_f.round(2)) %></td>
+          <td><%= m.order_id ? "##{m.order_id}" : "—" %></td>
+          <td><%= [ m.user&.name, m.note ].compact.join(" · ").presence || "—" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

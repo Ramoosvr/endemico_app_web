@@ -22,7 +22,7 @@ class ApiToken < ApplicationRecord
   def self.build_with_token(attrs = {})
     raw = "endx_#{SecureRandom.hex(24)}"
     token = new(attrs.merge(token_digest: digest(raw)))
-    [token, raw]
+    [ token, raw ]
   end
 
   def scope_list

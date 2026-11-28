@@ -1,7 +1,7 @@
 class PendientesController < ApplicationController
   def index
     @orders = Order.pending_preparation
-                   .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
+                   .includes(:user, order_items: [ :product, :removed_ingredients, :extras, :chosen_options ])
                    .order(:completed_at)
   end
 

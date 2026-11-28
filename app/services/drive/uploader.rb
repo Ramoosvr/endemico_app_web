@@ -19,7 +19,7 @@ module Drive
 
       metadata = Google::Apis::DriveV3::File.new(
         name: filename,
-        parents: [folder_id]
+        parents: [ folder_id ]
       )
       drive.create_file(metadata, upload_source: io, content_type: mime_type, fields: "id, name, web_view_link")
     end

@@ -21,6 +21,7 @@ class Product < ApplicationRecord
 
   has_many :product_ingredients, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
   has_many :ingredients, through: :product_ingredients
+  has_many :recipe_lines, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
   has_many :option_groups, -> { where(active: true).order(:position, :id) }, dependent: :destroy, inverse_of: :product
 
   attr_accessor :ingredients_list
@@ -76,7 +77,7 @@ class Product < ApplicationRecord
   def suggested_extra_price
     base = (price.to_d * BigDecimal("0.10"))
     rounded = (base / 5).ceil * 5
-    [rounded, BigDecimal("5")].max
+    [ rounded, BigDecimal("5") ].max
   end
 
   private

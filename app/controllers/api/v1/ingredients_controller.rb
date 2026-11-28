@@ -1,9 +1,9 @@
 module Api
   module V1
     class IngredientsController < BaseController
-      before_action -> { require_scope!("read")  }, only: [:index, :show]
-      before_action -> { require_scope!("write") }, only: [:create, :update, :destroy]
-      before_action :set_ingredient, only: [:show, :update, :destroy]
+      before_action -> { require_scope!("read")  }, only: [ :index, :show ]
+      before_action -> { require_scope!("write") }, only: [ :create, :update, :destroy ]
+      before_action :set_ingredient, only: [ :show, :update, :destroy ]
 
       def index
         render json: Ingredient.order(:name).map { |i| serialize(i) }
@@ -39,9 +39,9 @@ module Api
       def set_ingredient
         @ingredient = if params[:id].to_s.match?(/\A\d+\z/)
                         Ingredient.find(params[:id])
-                      else
+        else
                         Ingredient.find_by!(external_id: params[:id])
-                      end
+        end
       end
 
       def ingredient_params

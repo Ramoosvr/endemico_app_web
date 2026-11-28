@@ -1,0 +1,23 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "fingerprint": "1d8dc5b51f3669d41c8e67424cb0d96ebc9e9d5307f38400c3bff3674bfc8ab6",
+      "file": "app/controllers/users_controller.rb",
+      "note": "UsersController is admin-only (before_action :require_admin!); admins are meant to set roles."
+    },
+    {
+      "warning_type": "File Access",
+      "fingerprint": "49b0d11cfc1b253cd12c3c92b043d9300feea10b2972f112ea3dcc73a497bc58",
+      "file": "app/services/clip_pinpad.rb",
+      "note": "HTTP call to the Clip base URL, which only an admin can set in Ajustes. Not a file access."
+    },
+    {
+      "warning_type": "Redirect",
+      "fingerprint": "b04d6b1d08b1a776c449fd13677f8c9898ea9292559698752b9e8aca22a6f837",
+      "file": "app/controllers/analisis_controller.rb",
+      "note": "Host is fixed to wa.me; only digits of the admin-set phone and an escaped message are interpolated."
+    }
+  ],
+  "brakeman_version": "8.1.1"
+}

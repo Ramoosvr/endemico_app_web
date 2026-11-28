@@ -6,6 +6,11 @@ class OrderItem < ApplicationRecord
   has_many :extras, class_name: "OrderItemExtra", dependent: :destroy, inverse_of: :order_item
   has_many :chosen_options, class_name: "OrderItemOptionChoice", dependent: :destroy, inverse_of: :order_item
 
+  has_many :inventory_movements
+
+  # nil = sold before recipes existed; "ok"; "sin_receta"; "error".
+  INVENTORY_STATUSES = %w[ok sin_receta error].freeze
+
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
 
   def recalc_line_total!

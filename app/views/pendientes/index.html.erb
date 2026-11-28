@@ -92,8 +92,9 @@
           </header>
           <div class="cmz-body cname-body" style="display:grid; gap:14px;">
             <div style="font-size:14px; color: var(--ink-mute);">
-              Se regresa el stock de <strong><%= o.order_items.sum(&:quantity) %> ítem(s)</strong> e ingredientes. <strong>$<%= format("%.2f", o.total) %></strong> cobrados en <strong><%= o.payment_method %></strong> ya no cuentan en el corte.
+              <strong>$<%= format("%.2f", o.total) %></strong> cobrados en <strong><%= o.payment_method %></strong> ya no cuentan en el corte.
             </div>
+            <%= render "shared/refund_prepared_choice" %>
             <label class="cname-label">
               Motivo
               <textarea name="reason" rows="2" placeholder="ej. método de pago equivocado, error…" class="cname-input" style="font-size:15px; font-family:inherit;" required></textarea>

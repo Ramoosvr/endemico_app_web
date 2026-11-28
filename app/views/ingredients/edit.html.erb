@@ -1,14 +1,52 @@
-<% content_for :title, "Editar #{@ingredient.name} · Endémico" %>
+<% content_for :title, "#{@ingredient.name} · Endémico" %>
 
 <div class="pos">
-  <%= render "shared/header", heading: "Editar insumo", active: :insumos, zone: :backoffice %>
+  <%= render "shared/header", heading: "Insumo", active: :insumos, zone: :backoffice %>
+  <% if flash[:alert] %><div class="pos-flash pos-flash--error"><%= flash[:alert] %></div><% end %>
 
   <div class="insumos-layout insumos-layout--edit">
     <aside class="insumos-form">
       <div class="corte-section-head">
+        <h2>Llegó producto</h2>
+        <span>Stock actual: <%= number_with_delimiter(@ingredient.stock.to_f.round(2)) %> <%= @ingredient.unit %></span>
+      </div>
+      <%= form_with url: compra_ingredient_path(@ingredient), method: :post, local: true, class: "insumo-form" do %>
+        <div class="insumo-field-row">
+          <label class="insumo-field">
+            <span>Cantidad que llegó</span>
+            <input type="number" name="amount" step="0.001" min="0" required inputmode="decimal">
+          </label>
+          <label class="insumo-field">
+            <span>En</span>
+            <select name="mode">
+              <option value="unidades"><%= @ingredient.unit %></option>
+              <% if @ingredient.package_size.to_d.positive? %>
+                <option value="paquetes">paquetes de <%= @ingredient.package_size.to_f %> <%= @ingredient.unit %></option>
+              <% end %>
+            </select>
+          </label>
+        </div>
+        <label class="insumo-field">
+          <span>Nota (opcional)</span>
+          <input type="text" name="note" placeholder="ej. compra Costco">
+        </label>
+        <div class="insumo-form-actions">
+          <button type="submit" class="insumo-submit">Sumar al stock</button>
+        </div>
+      <% end %>
+    </aside>
+
+    <aside class="insumos-form">
+      <div class="corte-section-head">
         <h2><%= @ingredient.name %></h2>
+        <span><%= @ingredient.external_id %></span>
       </div>
       <%= render "form", ingredient: @ingredient, submit_label: "Guardar cambios", url: ingredient_path(@ingredient) %>
     </aside>
+
+    <section class="insumos-list">
+      <div class="corte-section-head"><h2>Últimos movimientos</h2></div>
+      <%= render "movements_table", movements: @movements, show_ingredient: false %>
+    </section>
   </div>
 </div>

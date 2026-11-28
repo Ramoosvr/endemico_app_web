@@ -47,18 +47,25 @@ Rails.application.routes.draw do
   delete "google_oauth"        => "google_oauth#destroy",   as: :google_oauth_disconnect
 
   get "stock" => "products#index", as: :stock
-  resources :products, except: [:index, :new] do
-    resources :product_ingredients, only: [:create, :update, :destroy]
-    resources :option_groups, only: [:create, :update, :destroy]
+  resources :products, except: [ :index, :new ] do
+    resources :product_ingredients, only: [ :create, :update, :destroy ]
+    resources :option_groups, only: [ :create, :update, :destroy ]
   end
 
   get "insumos" => "ingredients#index", as: :insumos
-  resources :ingredients, only: [:index, :create, :edit, :update, :destroy]
+  resources :ingredients, only: [ :index, :create, :edit, :update, :destroy ] do
+    post :compra, on: :member
+    collection do
+      get  :recetas
+      post :actualizar_recetas
+      get  :movimientos
+    end
+  end
 
   get   "ajustes" => "settings#index", as: :ajustes
   patch "ajustes" => "settings#update"
 
-  resources :api_tokens, only: [:index, :create, :destroy], path: "api-tokens"
+  resources :api_tokens, only: [ :index, :create, :destroy ], path: "api-tokens"
 
   get "reportes" => "reportes#index", as: :reportes
 
@@ -70,7 +77,7 @@ Rails.application.routes.draw do
   post   "agente" => "agent#create"
   delete "agente" => "agent#destroy", as: :agente_reset
 
-  resource :cart, only: [:show] do
+  resource :cart, only: [ :show ] do
     post   "items",         to: "carts#add_item",    as: :items
     patch  "items/:id",     to: "carts#update_item", as: :item
     delete "items/:id",     to: "carts#remove_item"
@@ -78,14 +85,16 @@ Rails.application.routes.draw do
     patch  "name",          to: "carts#set_name",    as: :name
   end
 
-  resource :clip_payment, only: [:create, :show, :destroy], controller: "clip_payments"
+  resource :clip_payment, only: [ :create, :show, :destroy ], controller: "clip_payments"
 
   namespace :api do
     namespace :v1 do
-      resources :products,    param: :id, only: [:index, :show, :create, :update, :destroy]
-      resources :ingredients, param: :id, only: [:index, :show, :create, :update, :destroy]
-      resources :sales,       only: [:index]
+      resources :products,    param: :id, only: [ :index, :show, :create, :update, :destroy ]
+      resources :ingredients, param: :id, only: [ :index, :show, :create, :update, :destroy ]
+      resources :sales,       only: [ :index ]
       get "ventas" => "sales#index"
+      post "matriz/sync"  => "matriz#sync"
+      get  "matriz/stock" => "matriz#stock"
     end
   end
 

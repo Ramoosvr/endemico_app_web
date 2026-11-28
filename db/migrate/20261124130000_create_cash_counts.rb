@@ -18,6 +18,6 @@ class CreateCashCounts < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :cash_counts, [:kind, :created_at]
+    add_index :cash_counts, [ :kind, :created_at ]
   end
 end

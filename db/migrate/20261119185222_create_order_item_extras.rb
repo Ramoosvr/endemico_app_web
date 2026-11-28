@@ -10,7 +10,7 @@ class CreateOrderItemExtras < ActiveRecord::Migration[8.1]
     end
 
     add_index :order_item_extras,
-              [:order_item_id, :ingredient_id],
+              [ :order_item_id, :ingredient_id ],
               unique: true,
               name: "index_oi_extras_on_item_and_ingredient"
   end

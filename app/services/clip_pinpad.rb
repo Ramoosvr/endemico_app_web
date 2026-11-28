@@ -91,11 +91,11 @@ class ClipPinpad
     uri.query = URI.encode_www_form(query) if query.present?
 
     req = case method
-          when :post   then Net::HTTP::Post.new(uri)
-          when :get    then Net::HTTP::Get.new(uri)
-          when :delete then Net::HTTP::Delete.new(uri)
-          else raise ArgumentError, "método no soportado: #{method}"
-          end
+    when :post   then Net::HTTP::Post.new(uri)
+    when :get    then Net::HTTP::Get.new(uri)
+    when :delete then Net::HTTP::Delete.new(uri)
+    else raise ArgumentError, "método no soportado: #{method}"
+    end
 
     req["Authorization"] = "Basic " + Base64.strict_encode64("#{@token}:#{@secret}")
     req["Content-Type"] = "application/json" if body

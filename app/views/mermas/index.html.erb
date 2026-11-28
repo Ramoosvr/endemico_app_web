@@ -12,11 +12,9 @@
       <p>Si un insumo se echó a perder, se tiró, o se rompió, regístralo acá. Se descuenta del stock y queda guardado como merma (no cuenta como venta ni como corte).</p>
     </section>
 
-    <% Ingredient::CATEGORIES.each do |cat| %>
-      <% items = @ingredients[cat] || [] %>
-      <% next if items.empty? %>
+    <% @ingredients.each do |cat, items| %>
       <section class="pruebas-section">
-        <h3><%= Ingredient::CATEGORY_LABELS[cat] %></h3>
+        <h3><%= cat %></h3>
         <div class="pruebas-grid">
           <% items.each do |ing| %>
             <div class="pruebas-card">

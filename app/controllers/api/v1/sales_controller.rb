@@ -9,7 +9,7 @@ module Api
 
         orders = Order.completed
                       .where(completed_at: from..to)
-                      .includes(:user, order_items: [:product, :removed_ingredients, :extras, :chosen_options])
+                      .includes(:user, order_items: [ :product, :removed_ingredients, :extras, :chosen_options ])
                       .order(completed_at: :asc)
 
         render json: {

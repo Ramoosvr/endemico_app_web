@@ -1,7 +1,7 @@
 class OptionGroupsController < ApplicationController
   before_action :require_admin!
   before_action :set_product
-  before_action :set_option_group, only: [:update, :destroy]
+  before_action :set_option_group, only: [ :update, :destroy ]
 
   def create
     og = @product.option_groups.build(permitted_params)
@@ -45,7 +45,7 @@ class OptionGroupsController < ApplicationController
   def permitted_params
     params.require(:option_group).permit(
       :name, :required, :selection_mode,
-      option_choices_attributes: [:id, :name, :extra_price, :default_selected, :available, :_destroy]
+      option_choices_attributes: [ :id, :name, :extra_price, :default_selected, :available, :_destroy ]
     )
   end
 end
