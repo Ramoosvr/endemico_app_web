@@ -1,9 +1,9 @@
 module Api
   module V1
     class ProductsController < BaseController
-      before_action -> { require_scope!("read")  }, only: [:index, :show]
-      before_action -> { require_scope!("write") }, only: [:create, :update, :destroy]
-      before_action :set_product, only: [:show, :update, :destroy]
+      before_action -> { require_scope!("read")  }, only: [ :index, :show ]
+      before_action -> { require_scope!("write") }, only: [ :create, :update, :destroy ]
+      before_action :set_product, only: [ :show, :update, :destroy ]
 
       def index
         scope = Product.includes(product_ingredients: :ingredient, option_groups: :option_choices)
@@ -41,9 +41,9 @@ module Api
       def set_product
         @product = if params[:id].to_s.match?(/\A\d+\z/)
                      Product.find(params[:id])
-                   else
+        else
                      Product.find_by!(external_id: params[:id])
-                   end
+        end
       end
 
       def product_params

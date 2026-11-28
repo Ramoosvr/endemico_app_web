@@ -1,5 +1,5 @@
 class RefundsController < ApplicationController
-  before_action :require_admin!, only: [:index]
+  before_action :require_admin!, only: [ :index ]
 
   def index
     @from = parse_date(params[:from]) || 24.hours.ago

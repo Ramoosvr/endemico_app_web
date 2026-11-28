@@ -128,10 +128,10 @@ module AgentTools
     period = args["period"] || "day"
     date   = (Date.parse(args["date"]) rescue Date.current)
     range  = case period
-             when "week"  then date.beginning_of_week.beginning_of_day..date.end_of_week.end_of_day
-             when "month" then date.beginning_of_month.beginning_of_day..date.end_of_month.end_of_day
-             else              date.beginning_of_day..date.end_of_day
-             end
+    when "week"  then date.beginning_of_week.beginning_of_day..date.end_of_week.end_of_day
+    when "month" then date.beginning_of_month.beginning_of_day..date.end_of_month.end_of_day
+    else              date.beginning_of_day..date.end_of_day
+    end
 
     orders = Order.completed.where(completed_at: range).includes(order_items: :product)
 

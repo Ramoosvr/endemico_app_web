@@ -51,10 +51,10 @@ MENU = [
 ].freeze
 
 # ---------- OPTION GROUPS ----------
-MILK_CHOICES      = ["Entera", "Deslactosada", "Deslactosada light", "Almendra", "Coco", "Avena", "Soya"].freeze
+MILK_CHOICES      = [ "Entera", "Deslactosada", "Deslactosada light", "Almendra", "Coco", "Avena", "Soya" ].freeze
 SHOTS_CHOICES     = %w[1 2 3].freeze
-PUMP_CHOICES      = ["Sin pump", "Normal", "Vainilla", "Vainilla light", "Vainilla francesa", "Caramelo", "Coco", "Banana"].freeze
-SWEETENER_CHOICES = ["Sin endulzante", "Azúcar", "Splenda", "Stevia"].freeze
+PUMP_CHOICES      = [ "Sin pump", "Normal", "Vainilla", "Vainilla light", "Vainilla francesa", "Caramelo", "Coco", "Banana" ].freeze
+SWEETENER_CHOICES = [ "Sin endulzante", "Azúcar", "Splenda", "Stevia" ].freeze
 
 def upsert_option_group(product, name:, required:, mode: "single", position:, choices:, default:)
   group = product.option_groups.find_or_initialize_by(name: name)
@@ -182,11 +182,11 @@ CUPS_CATALOG = {
 
 def cups_for(name)
   cold = name.match?(/iced|helado|tonic|frío/i)
-  return ["Vaso frío 16 oz", "Tapa cúpula fría", "Popote"]          if cold
-  return ["Vaso 16 oz",      "Tapa caliente 12/16", "Sleeve cartón"] if name.match?(/16 oz/i)
-  return ["Vaso 12 oz",      "Tapa caliente 12/16", "Sleeve cartón"] if name.match?(/12 oz/i)
-  return ["Vaso 6 oz",       "Tapa chica"]                           if name.match?(/6 oz|flat white/i)
-  return ["Vaso 4 oz",       "Tapa chica"]                           if name.match?(/4 oz|espresso/i)
+  return [ "Vaso frío 16 oz", "Tapa cúpula fría", "Popote" ]          if cold
+  return [ "Vaso 16 oz",      "Tapa caliente 12/16", "Sleeve cartón" ] if name.match?(/16 oz/i)
+  return [ "Vaso 12 oz",      "Tapa caliente 12/16", "Sleeve cartón" ] if name.match?(/12 oz/i)
+  return [ "Vaso 6 oz",       "Tapa chica" ]                           if name.match?(/6 oz|flat white/i)
+  return [ "Vaso 4 oz",       "Tapa chica" ]                           if name.match?(/4 oz|espresso/i)
   []
 end
 

@@ -9,7 +9,7 @@ class CreateOptionChoiceIngredients < ActiveRecord::Migration[8.1]
     end
 
     add_index :option_choice_ingredients,
-              [:option_choice_id, :ingredient_id],
+              [ :option_choice_id, :ingredient_id ],
               unique: true,
               name: "idx_oci_choice_ingredient"
   end

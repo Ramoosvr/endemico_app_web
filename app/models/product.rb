@@ -77,7 +77,7 @@ class Product < ApplicationRecord
   def suggested_extra_price
     base = (price.to_d * BigDecimal("0.10"))
     rounded = (base / 5).ceil * 5
-    [rounded, BigDecimal("5")].max
+    [ rounded, BigDecimal("5") ].max
   end
 
   private

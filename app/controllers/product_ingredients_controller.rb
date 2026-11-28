@@ -1,7 +1,7 @@
 class ProductIngredientsController < ApplicationController
   before_action :require_admin!
   before_action :set_product
-  before_action :set_product_ingredient, only: [:update, :destroy]
+  before_action :set_product_ingredient, only: [ :update, :destroy ]
 
   def create
     ingredient_id = params.dig(:product_ingredient, :ingredient_id)
