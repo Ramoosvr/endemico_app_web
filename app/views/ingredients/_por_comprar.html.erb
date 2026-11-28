@@ -1,0 +1,38 @@
+<%# Small strip on top of Insumos: what needs buying, collapsed by default. %>
+<%
+  negative = ingredients.select { |i| i.stock.negative? }
+  low      = ingredients.select { |i| !i.stock.negative? && i.min_stock.positive? && i.below_min? }
+  no_price = ingredients.select { |i| i.effective_unit_cost.zero? }
+  to_buy   = negative + low
+%>
+<% if to_buy.any? || no_price.any? %>
+  <details class="por-comprar">
+    <summary>
+      <strong>Por comprar:</strong>
+      <% parts = [] %>
+      <% parts << "#{low.size} bajo el mínimo" if low.any? %>
+      <% parts << "#{negative.size} en negativo" if negative.any? %>
+      <% parts << "#{no_price.size} sin precio en Matriz" if no_price.any? %>
+      <%= parts.join(" · ") %>
+      <span class="por-comprar-ver">ver lista</span>
+    </summary>
+    <% if to_buy.any? %>
+      <table class="por-comprar-table">
+        <thead><tr><th>Insumo</th><th>Stock</th><th>Mínimo</th><th>Dónde comprar</th></tr></thead>
+        <tbody>
+          <% to_buy.each do |i| %>
+            <tr>
+              <td><%= link_to i.name, edit_ingredient_path(i) %></td>
+              <td class="<%= 'por-comprar-neg' if i.stock.negative? %>"><%= number_with_delimiter(i.stock.to_f.round(2)) %> <%= i.unit %></td>
+              <td><%= i.min_stock.positive? ? "#{number_with_delimiter(i.min_stock.to_f)} #{i.unit}" : "—" %></td>
+              <td><%= i.supplier.presence || "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+    <% if no_price.any? %>
+      <p class="por-comprar-nota">Sin precio en Matriz: <%= no_price.map(&:name).join(", ") %>.</p>
+    <% end %>
+  </details>
+<% end %>
