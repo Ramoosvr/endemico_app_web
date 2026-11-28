@@ -1,6 +1,7 @@
 <%# A single- or multiple-choice option group rendered as chips. %>
 <% preselected = og.preselected_choice %>
-<ul class="cmz-list <%= og.single? ? 'cmz-list--chips' : '' %>">
+<%# Required single choices (Leche, Endulzante…) stay on one line. %>
+<ul class="cmz-list <%= og.single? ? 'cmz-list--chips' : '' %><%= ' cmz-list--row' if og.single? && og.required %>">
   <% og.option_choices.each do |oc| %>
     <li class="cmz-item<%= " cmz-item--soldout" unless oc.available %>">
       <label class="cmz-check">
@@ -25,7 +26,7 @@
         <span class="cmz-item-name"><%= oc.name %></span>
         <% unless oc.available %><span class="cmz-soldout-tag">agotado</span><% end %>
         <% if oc.available && oc.extra_price.to_f > 0 %>
-          <span class="cmz-item-price">+$<%= format("%.2f", oc.extra_price) %></span>
+          <span class="cmz-item-price">+$<%= oc.extra_price.to_d.frac.zero? ? oc.extra_price.to_i : format("%.2f", oc.extra_price) %></span>
         <% end %>
       </label>
     </li>

@@ -33,7 +33,9 @@ module EndemicoPos
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # Hora local de la cafetería (UTC-7). La base sigue guardando en UTC;
+    # esto hace que "hoy" y los turnos de caja (6–14, 14–21) usen hora local.
+    config.time_zone = "Mazatlan"
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Don't generate system test files.

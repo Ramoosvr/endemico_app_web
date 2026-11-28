@@ -10,7 +10,7 @@
 #   options:  conjunto de grupos de personalización a aplicar
 #
 # Shapes de options (strings):
-#   "leche"       → grupo "Leche" obligatorio, opciones: entera, deslactosada, deslactosada light, almendra, coco, avena
+#   "leche"       → grupo "Leche" obligatorio, opciones: entera, deslactosada, deslactosada light, almendra, coco, avena, soya
 #   "shots:N"     → grupo "Shots de espresso" obligatorio, default N
 #   "pump"        → grupo "Pump de sabor" opcional, default "sin"
 #   "pump:X"      → grupo "Pump de sabor" opcional, default X (p. ej. "caramelo")
@@ -51,7 +51,7 @@ MENU = [
 ].freeze
 
 # ---------- OPTION GROUPS ----------
-MILK_CHOICES      = ["Entera", "Deslactosada", "Deslactosada light", "Almendra", "Coco", "Avena"].freeze
+MILK_CHOICES      = ["Entera", "Deslactosada", "Deslactosada light", "Almendra", "Coco", "Avena", "Soya"].freeze
 SHOTS_CHOICES     = %w[1 2 3].freeze
 PUMP_CHOICES      = ["Sin pump", "Normal", "Vainilla", "Vainilla light", "Vainilla francesa", "Caramelo", "Coco", "Banana"].freeze
 SWEETENER_CHOICES = ["Sin endulzante", "Azúcar", "Splenda", "Stevia"].freeze
