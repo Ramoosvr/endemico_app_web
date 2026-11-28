@@ -8,6 +8,7 @@
 
   <div class="insumos-layout">
     <section class="insumos-list">
+      <%= render "por_comprar", ingredients: @ingredients %>
       <div class="corte-section-head">
         <h2>Inventario</h2>
         <span><%= @ingredients.size %> insumos · se sincroniza con Matriz cada minuto</span>

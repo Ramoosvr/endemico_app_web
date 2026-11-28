@@ -5067,3 +5067,22 @@ html, body { overflow-x: hidden; }
 .merma-note { font-size: 12px; color: var(--ink-mute); margin: 8px 0 0; }
 .merma-registrar { margin: 18px 0; }
 .merma-registrar > summary { cursor: pointer; font-family: Georgia, serif; font-size: 18px; color: var(--coffee); padding: 8px 0; }
+
+/* Insumos: "Por comprar" strip */
+.por-comprar {
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  background: var(--paper);
+  border: 1px solid rgba(43, 26, 16, .10);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.por-comprar summary { cursor: pointer; list-style: none; }
+.por-comprar summary::-webkit-details-marker { display: none; }
+.por-comprar-ver { margin-left: 8px; text-decoration: underline; color: var(--ink-mute); }
+.por-comprar[open] .por-comprar-ver { display: none; }
+.por-comprar-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
+.por-comprar-table th { text-align: left; font-weight: 600; color: var(--ink-mute); padding: 4px 6px; }
+.por-comprar-table td { padding: 4px 6px; border-top: 1px solid rgba(43, 26, 16, .08); }
+.por-comprar-neg { color: var(--danger-text); font-weight: 600; }
+.por-comprar-nota { margin: 8px 0 0; font-size: 12px; color: var(--ink-mute); }
