@@ -53,7 +53,14 @@ Rails.application.routes.draw do
   end
 
   get "insumos" => "ingredients#index", as: :insumos
-  resources :ingredients, only: [:index, :create, :edit, :update, :destroy]
+  resources :ingredients, only: [:index, :create, :edit, :update, :destroy] do
+    post :compra, on: :member
+    collection do
+      get  :recetas
+      post :actualizar_recetas
+      get  :movimientos
+    end
+  end
 
   get   "ajustes" => "settings#index", as: :ajustes
   patch "ajustes" => "settings#update"
@@ -86,6 +93,8 @@ Rails.application.routes.draw do
       resources :ingredients, param: :id, only: [:index, :show, :create, :update, :destroy]
       resources :sales,       only: [:index]
       get "ventas" => "sales#index"
+      post "matriz/sync"  => "matriz#sync"
+      get  "matriz/stock" => "matriz#stock"
     end
   end
 

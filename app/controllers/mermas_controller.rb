@@ -1,6 +1,6 @@
 class MermasController < ApplicationController
   def index
-    @ingredients = Ingredient.ordered.group_by(&:category)
+    @ingredients = Ingredient.by_section.group_by(&:section_label)
     @recent = Merma.includes(:ingredient, :user)
                    .where(created_at: 30.days.ago..Time.current)
                    .order(created_at: :desc)

@@ -1,0 +1,35 @@
+<% content_for :title, "Movimientos · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Movimientos de inventario", active: :insumos, zone: :backoffice %>
+
+  <section class="insumos-list" style="padding:16px;">
+    <p><%= link_to "← Inventario", ingredients_path, class: "insumo-btn" %></p>
+
+    <div class="corte-section-head">
+      <h2>Ventas sin receta o con error</h2>
+      <span><%= @sin_receta.size %></span>
+    </div>
+    <% if @sin_receta.empty? %>
+      <p class="pos-empty">Todas las ventas descontaron inventario.</p>
+    <% else %>
+      <table class="pruebas-table">
+        <thead><tr><th>Fecha</th><th>Pedido</th><th>Producto</th><th>Cant.</th><th>Estado</th></tr></thead>
+        <tbody>
+          <% @sin_receta.each do |item| %>
+            <tr>
+              <td><%= l(item.created_at.in_time_zone, format: "%d/%m %H:%M") %></td>
+              <td>#<%= item.order_id %></td>
+              <td><%= item.product&.name %></td>
+              <td><%= item.quantity %></td>
+              <td><%= item.inventory_status == "error" ? "error al descontar" : "sin receta" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <div class="corte-section-head" style="margin-top:24px;"><h2>Últimos 300 movimientos</h2></div>
+    <%= render "movements_table", movements: @movements, show_ingredient: true %>
+  </section>
+</div>

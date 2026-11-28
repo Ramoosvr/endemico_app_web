@@ -1,0 +1,59 @@
+<% content_for :title, "Recetas · Endémico" %>
+
+<div class="pos">
+  <%= render "shared/header", heading: "Recetas", active: :insumos, zone: :backoffice %>
+  <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
+
+  <section class="insumos-list" style="padding:16px;">
+    <p><%= link_to "← Inventario", ingredients_path, class: "insumo-btn" %></p>
+
+    <div class="corte-section-head">
+      <h2>Actualizar desde Matriz</h2>
+      <span>Toma la pestaña Recetario tal como está en Matriz</span>
+    </div>
+    <%= button_to "Actualizar recetas", actualizar_recetas_ingredients_path, method: :post, class: "insumo-submit" %>
+
+    <% if @requested %>
+      <p class="pos-flash pos-flash--ok">Esperando a Matriz… (menos de un minuto). Recarga la página.</p>
+    <% end %>
+
+    <% if @result %>
+      <p>Última actualización: <strong><%= l(Time.zone.parse(@result["at"]), format: "%d/%m %H:%M") %></strong>
+        · <%= @result["recetas"] %> productos con receta.</p>
+      <% if @result["errores"].present? %>
+        <div class="pos-flash pos-flash--error">
+          <strong>No se aplicó (se dejó la receta anterior):</strong>
+          <ul><% @result["errores"].each do |e| %><li><%= e %></li><% end %></ul>
+        </div>
+      <% end %>
+      <% if @result["avisos"].present? %>
+        <ul style="color: var(--ink-mute);"><% @result["avisos"].each do |a| %><li><%= a %></li><% end %></ul>
+      <% end %>
+    <% end %>
+
+    <div class="corte-section-head" style="margin-top:24px;"><h2>Lo que descuenta cada producto</h2></div>
+    <% @products.each do |p| %>
+      <div class="insumo-section">
+        <div class="insumo-section-head">
+          <h3><%= p.name %></h3>
+          <span><%= p.recipe_lines.any? ? "" : "sin receta" %></span>
+        </div>
+        <% if p.recipe_lines.any? %>
+          <table class="pruebas-table">
+            <tbody>
+              <% p.recipe_lines.group_by(&:size).each do |size, lines| %>
+                <% lines.each_with_index do |l, i| %>
+                  <tr>
+                    <td><%= i.zero? ? (size.presence || "todos") : "" %></td>
+                    <td><%= l.slot.present? ? "#{l.slot} elegida (base: #{l.ingredient.name})" : l.ingredient.name %></td>
+                    <td><%= number_with_delimiter(l.quantity.to_f) %> <%= l.ingredient.unit %></td>
+                  </tr>
+                <% end %>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+</div>

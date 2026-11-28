@@ -29,23 +29,60 @@ class Ingredient < ApplicationRecord
     "otros"         => "Otros"
   }.freeze
 
+  # Created in the POS: gets a code so the Matriz sheet can pick it up.
+  after_create :assign_pos_code, if: -> { external_id.blank? }
+
   normalizes :name, with: ->(n) { n.to_s.strip }
 
   has_many :product_ingredients, dependent: :destroy
   has_many :products, through: :product_ingredients
   has_many :option_choice_ingredients, dependent: :destroy
+  has_many :recipe_lines, dependent: :restrict_with_error
+  has_many :inventory_movements, dependent: :restrict_with_error
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :unit, presence: true, inclusion: { in: UNITS }
   validates :category, inclusion: { in: CATEGORIES }
-  validates :stock, :min_stock, :cost_per_unit,
+  # Stock may go below zero: a sale is never blocked, and a negative number
+  # shows that the last count or a recipe needs checking.
+  validates :stock, numericality: true
+  validates :min_stock, :cost_per_unit,
             numericality: { greater_than_or_equal_to: 0 }
 
-  scope :ordered,      -> { order(Arel.sql("LOWER(name)")) }
-  scope :below_min,    -> { where("stock < min_stock") }
+  scope :active,       -> { where(archived_at: nil) }
+  scope :archived,     -> { where.not(archived_at: nil) }
+  scope :ordered,      -> { active.order(Arel.sql("LOWER(name)")) }
+  scope :by_section,   -> { active.order(:section_position, :position, Arel.sql("LOWER(name)")) }
+  scope :below_min,    -> { active.where("stock < min_stock") }
 
   def category_label
     CATEGORY_LABELS[category] || "Otros"
+  end
+
+  # Section from the Matriz sheet ("LECHES Y LÁCTEOS"), or the old category.
+  def section_label
+    section.presence || category_label
+  end
+
+  def assign_pos_code
+    update_columns(external_id: "POS-#{id}")
+  end
+
+  def archived?
+    archived_at.present?
+  end
+
+  # Changes the stock by `delta` (negative = goes out) and records why.
+  # Locks the row so two sales at once cannot overwrite each other.
+  def apply_movement!(delta, kind:, order: nil, order_item: nil, user: nil, note: nil)
+    with_lock do
+      new_stock = stock.to_d + delta.to_d
+      update_columns(stock: new_stock, updated_at: Time.current)
+      inventory_movements.create!(
+        kind: kind, quantity: delta, stock_after: new_stock,
+        order: order, order_item: order_item, user: user, note: note
+      )
+    end
   end
 
   def stock_ratio

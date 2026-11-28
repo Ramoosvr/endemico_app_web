@@ -5058,3 +5058,4 @@ html, body { overflow-x: hidden; }
 /* Caja: historial de hoy — 3 cols para incluir retiros */
 .caja-history-today-grid { grid-template-columns: repeat(3, 1fr) !important; }
 @media (max-width: 760px) { .caja-history-today-grid { grid-template-columns: 1fr !important; } }
+.insumo-links { display:flex; gap:8px; flex-wrap:wrap; margin: 0 0 12px; }

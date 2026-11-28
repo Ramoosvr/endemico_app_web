@@ -21,6 +21,7 @@ class Product < ApplicationRecord
 
   has_many :product_ingredients, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
   has_many :ingredients, through: :product_ingredients
+  has_many :recipe_lines, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :product
   has_many :option_groups, -> { where(active: true).order(:position, :id) }, dependent: :destroy, inverse_of: :product
 
   attr_accessor :ingredients_list

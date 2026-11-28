@@ -24,14 +24,14 @@ class Order < ApplicationRecord
       order_items.includes(
         :removed_ingredients,
         :extras,
-        chosen_options: { option_choice: :option_choice_ingredients },
-        product: { product_ingredients: :ingredient }
+        chosen_options: { option_choice: [ :ingredient, { option_choice_ingredients: :ingredient } ] },
+        product: [ { product_ingredients: :ingredient }, { recipe_lines: :ingredient } ]
       ).each do |item|
         product = item.product
         new_stock = product.stock.to_i - item.quantity.to_i
         product.update!(stock: [ new_stock, 0 ].max)
 
-        decrement_ingredients_for(item)
+        consume_ingredients_for(item)
       end
       attrs = { status: "completed", completed_at: Time.current }
       attrs[:payment_method] = payment_method if payment_method.present?
@@ -47,96 +47,59 @@ class Order < ApplicationRecord
     (usd_received.to_d * usd_rate.to_d) - total.to_d
   end
 
-  def refund!(reason:, user:)
+  # prepared: true  -> the drinks were already made: what they used goes to
+  #                   merma and does not come back to stock.
+  # prepared: false -> nothing was made: every ingredient goes back to stock.
+  # Orders sold before recipes existed have no movements, so stock is untouched.
+  def refund!(reason:, user:, prepared: false)
     raise ArgumentError, "Solo se pueden devolver pedidos completados" unless status == "completed"
 
     transaction do
-      order_items.includes(
-        :removed_ingredients,
-        :extras,
-        chosen_options: { option_choice: :option_choice_ingredients },
-        product: { product_ingredients: :ingredient }
-      ).each do |item|
+      order_items.includes(:product).each do |item|
         product = item.product
-        product.update!(stock: product.stock.to_i + item.quantity.to_i)
-        restore_ingredients_for(item)
+        product.update!(stock: product.stock.to_i + item.quantity.to_i) unless prepared
+      end
+
+      note = "Devolución pedido ##{id}#{reason.present? ? ": #{reason.to_s.strip}" : ""}"
+      sales = InventoryMovement.where(order_id: id, kind: "venta").includes(:ingredient)
+      sales.group_by(&:ingredient).each do |ingredient, movements|
+        used = movements.sum { |m| -m.quantity.to_d }
+        next unless used.positive?
+
+        if prepared
+          Merma.create!(ingredient: ingredient, user: user, amount: used, reason: note, skip_stock: true)
+          ingredient.inventory_movements.create!(kind: "devolucion_merma", quantity: 0, stock_after: ingredient.stock,
+                                                 order: self, user: user, note: "#{used} #{ingredient.unit} a merma")
+        else
+          ingredient.apply_movement!(used, kind: "devolucion", order: self, user: user, note: note)
+        end
       end
 
       update!(
         status: "refunded",
         refunded_at: Time.current,
         refund_reason: reason.to_s.strip.presence,
-        refunded_by_user: user
+        refunded_by_user: user,
+        refund_prepared: prepared
       )
     end
   end
 
   private
 
-  def decrement_ingredients_for(item)
-    qty = item.quantity.to_i
-    return if qty <= 0
-
-    removed_ids = item.removed_ingredients.map(&:ingredient_id).to_set
-    extra_ids   = item.extras.map(&:ingredient_id).to_set
-
-    consumed = Hash.new { |h, k| h[k] = 0.to_d }
-
-    item.product.product_ingredients.each do |pi|
-      next if pi.quantity_per_unit.to_d.zero?
-
-      if pi.default_included?
-        next if removed_ids.include?(pi.ingredient_id)
-        consumed[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
-      elsif extra_ids.include?(pi.ingredient_id)
-        consumed[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
+  # Never blocks the sale: if anything goes wrong the item is marked "error"
+  # and the order still completes.
+  def consume_ingredients_for(item)
+    result = Inventory::Deduction.for(item)
+    transaction(requires_new: true) do
+      result.amounts.each do |ingredient, amount|
+        next unless amount.positive?
+        ingredient.apply_movement!(-amount, kind: "venta", order: self, order_item: item, user: user)
       end
     end
-
-    item.chosen_options.each do |cop|
-      cop.option_choice.option_choice_ingredients.each do |oci|
-        next if oci.quantity_per_unit.to_d.zero?
-        consumed[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty * cop.quantity.to_i
-      end
-    end
-
-    consumed.each do |ingredient_id, amount|
-      ing = Ingredient.find(ingredient_id)
-      new_stock = [ ing.stock.to_d - amount, 0.to_d ].max
-      ing.update!(stock: new_stock)
-    end
-  end
-
-  def restore_ingredients_for(item)
-    qty = item.quantity.to_i
-    return if qty <= 0
-
-    removed_ids = item.removed_ingredients.map(&:ingredient_id).to_set
-    extra_ids   = item.extras.map(&:ingredient_id).to_set
-
-    restored = Hash.new { |h, k| h[k] = 0.to_d }
-
-    item.product.product_ingredients.each do |pi|
-      next if pi.quantity_per_unit.to_d.zero?
-
-      if pi.default_included?
-        next if removed_ids.include?(pi.ingredient_id)
-        restored[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
-      elsif extra_ids.include?(pi.ingredient_id)
-        restored[pi.ingredient_id] += pi.quantity_per_unit.to_d * qty
-      end
-    end
-
-    item.chosen_options.each do |cop|
-      cop.option_choice.option_choice_ingredients.each do |oci|
-        next if oci.quantity_per_unit.to_d.zero?
-        restored[oci.ingredient_id] += oci.quantity_per_unit.to_d * qty * cop.quantity.to_i
-      end
-    end
-
-    restored.each do |ingredient_id, amount|
-      ing = Ingredient.find(ingredient_id)
-      ing.update!(stock: ing.stock.to_d + amount)
-    end
+    item.update_column(:inventory_status, result.status)
+  rescue StandardError => e
+    Rails.logger.error("[inventario] pedido #{id} item #{item.id}: #{e.class}: #{e.message}")
+    item.update_column(:inventory_status, "error")
   end
 end

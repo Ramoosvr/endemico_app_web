@@ -9,42 +9,52 @@
   <div class="insumos-layout">
     <section class="insumos-list">
       <div class="corte-section-head">
-        <h2>Catálogo</h2>
-        <span><%= @ingredients.size %> insumos</span>
+        <h2>Inventario</h2>
+        <span><%= @ingredients.size %> insumos · se sincroniza con Matriz cada minuto</span>
       </div>
+      <p class="insumo-links">
+        <%= link_to "Recetas", recetas_ingredients_path, class: "insumo-btn" %>
+        <%= link_to "Movimientos y ventas sin receta", movimientos_ingredients_path, class: "insumo-btn" %>
+      </p>
 
       <% if @ingredients.empty? %>
-        <p class="pos-empty">Sin insumos. Crea uno en el panel de la derecha.</p>
+        <p class="pos-empty">Sin insumos todavía. Se cargan solos desde Matriz.</p>
       <% else %>
-        <% @ingredients_by_category.each do |cat, items| %>
+        <% @ingredients_by_section.each do |section, items| %>
           <div class="insumo-section">
             <div class="insumo-section-head">
-              <h3><%= Ingredient::CATEGORY_LABELS[cat] || "Otros" %></h3>
+              <h3><%= section %></h3>
               <span><%= items.size %></span>
             </div>
             <ul class="insumo-grid">
               <% items.each do |ing| %>
-                <li class="insumo-card <%= 'insumo-card--low' if ing.below_min? %>">
+                <li class="insumo-card <%= 'insumo-card--low' if ing.below_min? || ing.stock.negative? %>">
                   <header class="insumo-head">
                     <strong><%= ing.name %></strong>
-                    <span class="insumo-unit"><%= ing.unit %></span>
+                    <span class="insumo-unit"><%= ing.external_id %></span>
                   </header>
                   <dl class="insumo-meta">
-                    <div><dt>stock</dt><dd><%= ing.stock.to_f %> <%= ing.unit %></dd></div>
-                    <div><dt>mínimo</dt><dd><%= ing.min_stock.to_f %> <%= ing.unit %></dd></div>
-                    <div><dt>precio</dt><dd>$<%= format("%.2f", ing.cost_per_unit) %>/<%= ing.unit %></dd></div>
+                    <div><dt>stock</dt><dd><%= number_with_delimiter(ing.stock.to_f.round(2)) %> <%= ing.unit %></dd></div>
+                    <% if ing.min_stock.positive? %>
+                      <div><dt>mínimo</dt><dd><%= number_with_delimiter(ing.min_stock.to_f) %> <%= ing.unit %></dd></div>
+                    <% end %>
+                    <% if ing.brand.present? %>
+                      <div><dt>marca</dt><dd><%= ing.brand %></dd></div>
+                    <% end %>
                     <% if ing.supplier.present? %>
-                      <div><dt>proveedor</dt><dd><%= ing.supplier %></dd></div>
+                      <div><dt>dónde comprar</dt><dd><%= ing.supplier %></dd></div>
                     <% end %>
                   </dl>
-                  <% if ing.below_min? %>
+                  <% if ing.stock.negative? %>
+                    <div class="insumo-alert">⚠ Stock negativo: revisar conteo</div>
+                  <% elsif ing.below_min? %>
                     <div class="insumo-alert">⚠ Debajo del mínimo</div>
                   <% end %>
                   <footer class="insumo-actions">
-                    <%= link_to "editar", edit_ingredient_path(ing), class: "insumo-btn" %>
-                    <%= button_to "eliminar", ingredient_path(ing), method: :delete,
+                    <%= link_to "entrada / editar", edit_ingredient_path(ing), class: "insumo-btn" %>
+                    <%= button_to "archivar", ingredient_path(ing), method: :delete,
                           class: "insumo-btn insumo-btn--danger",
-                          data: { turbo_confirm: "¿Eliminar #{ing.name}? Se borra de todas las recetas." } %>
+                          data: { turbo_confirm: "¿Archivar #{ing.name}? Deja de aparecer, pero no se borra nada." } %>
                   </footer>
                 </li>
               <% end %>
