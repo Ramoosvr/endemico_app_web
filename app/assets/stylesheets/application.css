@@ -2078,6 +2078,11 @@ a:hover { color: var(--terracotta-dark); text-decoration: underline; }
   gap: 10px;
   border-radius: 999px;
 }
+.cmz-list--row { flex-wrap: nowrap; gap: 6px; }
+.cmz-list--chips.cmz-list--row .cmz-item { flex: 1 1 auto; min-width: 0; }
+.cmz-list--chips.cmz-list--row .cmz-check { padding: 12px 10px; gap: 6px; justify-content: center; }
+.cmz-list--chips.cmz-list--row .cmz-item-name { flex: 0 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.cmz-list--chips.cmz-list--row .cmz-item-price { padding: 2px 7px; font-size: 11px; white-space: nowrap; }
 .cmz-list--chips .cmz-check input {
   position: absolute;
   opacity: 0;
