@@ -1,11 +1,5 @@
 <% content_for :title, "Pendientes · Endémico" %>
-<% content_for :head do %>
-  <% if @orders.any? %>
-    <meta http-equiv="refresh" content="10">
-  <% end %>
-<% end %>
-
-<div class="pos">
+<div class="pos" data-controller="auto-refresh" data-auto-refresh-interval-value="10">
   <%= render "shared/header", heading: "Pendientes", active: :pendientes, zone: :frontoffice %>
 
   <% if flash[:notice] %><div class="pos-flash pos-flash--ok"><%= flash[:notice] %></div><% end %>
@@ -17,7 +11,7 @@
       <span class="pend-count-label"><%= @orders.size == 1 ? "pedido por hacer" : "pedidos por hacer" %></span>
     </div>
     <div class="pend-head-right">
-      <span class="pend-refresh">La página se actualiza sola cada 10s</span>
+      <span class="pend-refresh">La página se actualiza sola cada 10s (no mientras devuelves un pedido)</span>
       <% if @orders.any? %>
         <%= button_to "Marcar todos como hechos ✓", pendientes_todos_path,
               method: :post,

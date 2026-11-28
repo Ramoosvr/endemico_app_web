@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_28_100100) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_28_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -116,6 +116,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_28_100100) do
     t.decimal "package_count", precision: 12, scale: 3
     t.decimal "package_price", precision: 10, scale: 2
     t.datetime "archived_at"
+    t.decimal "unit_cost", precision: 16, scale: 6
     t.index "LOWER(name)", name: "index_ingredients_on_lower_name", unique: true
     t.index ["category"], name: "index_ingredients_on_category"
     t.index ["external_id"], name: "index_ingredients_on_external_id", unique: true
@@ -146,6 +147,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_28_100100) do
     t.text "reason"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "value", precision: 12, scale: 2
     t.index ["created_at"], name: "index_mermas_on_created_at"
     t.index ["ingredient_id"], name: "index_mermas_on_ingredient_id"
     t.index ["user_id"], name: "index_mermas_on_user_id"

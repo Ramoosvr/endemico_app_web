@@ -5059,3 +5059,11 @@ html, body { overflow-x: hidden; }
 .caja-history-today-grid { grid-template-columns: repeat(3, 1fr) !important; }
 @media (max-width: 760px) { .caja-history-today-grid { grid-template-columns: 1fr !important; } }
 .insumo-links { display:flex; gap:8px; flex-wrap:wrap; margin: 0 0 12px; }
+
+/* Merma: resumen arriba, registro plegable */
+.merma-resumen .pruebas-summary { flex-wrap: wrap; }
+.merma-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-mute); margin: 22px 0 6px; font-weight: 600; }
+.merma-insumos { font-size: 11px; color: var(--ink-mute); margin-top: 3px; }
+.merma-note { font-size: 12px; color: var(--ink-mute); margin: 8px 0 0; }
+.merma-registrar { margin: 18px 0; }
+.merma-registrar > summary { cursor: pointer; font-family: Georgia, serif; font-size: 18px; color: var(--coffee); padding: 8px 0; }

@@ -31,6 +31,8 @@ class Ingredient < ApplicationRecord
 
   # Created in the POS: gets a code so the Matriz sheet can pick it up.
   after_create :assign_pos_code, if: -> { external_id.blank? }
+  # A cost typed by hand in the POS replaces the precise Matriz one.
+  before_save -> { self.unit_cost = cost_per_unit }, if: -> { cost_per_unit_changed? && !unit_cost_changed? }
 
   normalizes :name, with: ->(n) { n.to_s.strip }
 
@@ -54,6 +56,11 @@ class Ingredient < ApplicationRecord
   scope :ordered,      -> { active.order(Arel.sql("LOWER(name)")) }
   scope :by_section,   -> { active.order(:section_position, :position, Arel.sql("LOWER(name)")) }
   scope :below_min,    -> { active.where("stock < min_stock") }
+
+  # Cost of one unit (1 ml, 1 g, 1 pza). Prefers the precise Matriz value.
+  def effective_unit_cost
+    (unit_cost.presence || cost_per_unit).to_d
+  end
 
   def category_label
     CATEGORY_LABELS[category] || "Otros"

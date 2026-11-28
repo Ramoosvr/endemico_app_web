@@ -1,0 +1,76 @@
+<%
+  refund_cost   = ->(o) { Array(@refund_insumos[o.id]).sum(&:cost) }
+  refunds_cost  = @prepared_refunds.sum { |o| refund_cost.(o) }
+  refunds_sales = @prepared_refunds.sum { |o| o.total.to_d }
+  manual_value  = @recent.sum(&:cost)
+  missing_costs = (@recent + @refund_insumos.values.flatten).any? { |m| m.cost.zero? }
+%>
+<section class="pruebas-recent merma-resumen">
+  <h3>Resumen de merma (últimos 30 días)</h3>
+  <div class="pruebas-summary">
+    <div><strong>$<%= format("%.2f", refunds_cost + manual_value) %></strong><span>costo total perdido</span></div>
+    <div><strong><%= @prepared_refunds.size %></strong><span>devoluciones ya preparadas</span></div>
+    <div><strong>$<%= format("%.2f", refunds_cost) %></strong><span>costo de esos productos</span></div>
+    <div><strong>$<%= format("%.2f", refunds_sales) %></strong><span>venta devuelta</span></div>
+    <div><strong><%= @recent.size %></strong><span>mermas de insumos</span></div>
+    <div><strong>$<%= format("%.2f", manual_value) %></strong><span>valor insumos</span></div>
+  </div>
+  <p class="merma-note">El costo sale del precio unitario de la pestaña Inventario de Matriz.</p>
+  <% if missing_costs %>
+    <p class="merma-note">Algunos insumos no tienen precio unitario en Matriz, así que valen $0 y no suman al total.</p>
+  <% end %>
+
+  <h4 class="merma-sub">Pedidos devueltos que ya se habían preparado</h4>
+  <% if @prepared_refunds.any? %>
+    <table class="pruebas-table">
+      <thead>
+        <tr><th>Fecha</th><th>Pedido</th><th>Productos</th><th>Quién</th><th>Costo</th><th>Venta</th><th>Motivo</th></tr>
+      </thead>
+      <tbody>
+        <% @prepared_refunds.each do |o| %>
+          <tr>
+            <td><%= o.refunded_at.strftime("%d/%m %H:%M") %></td>
+            <td>#<%= o.id %></td>
+            <td>
+              <%= o.order_items.map { |i| "#{i.quantity.to_i > 1 ? "#{i.quantity}× " : ""}#{i.product.name}" }.join(", ") %>
+              <% if (insumos = @refund_insumos[o.id]).present? %>
+                <div class="merma-insumos">Insumos: <%= insumos.map { |m| "#{m.amount.to_f.round(2)} #{m.ingredient.unit} #{m.ingredient.name} × $#{format("%.4f", m.ingredient.effective_unit_cost)} = $#{format("%.2f", m.cost)}" }.join(" · ") %></div>
+              <% end %>
+            </td>
+            <td><%= o.refunded_by_user&.name %></td>
+            <td><strong>$<%= format("%.2f", refund_cost.(o)) %></strong></td>
+            <td>$<%= format("%.2f", o.total.to_d) %></td>
+            <td><%= o.refund_reason.presence || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="merma-note">El costo sale del campo “Costo” de cada producto (Inventario › Productos).</p>
+  <% else %>
+    <p class="pruebas-empty">Sin devoluciones de pedidos ya preparados.</p>
+  <% end %>
+
+  <h4 class="merma-sub">Mermas de insumos registradas a mano</h4>
+  <% if @recent.any? %>
+    <table class="pruebas-table">
+      <thead>
+        <tr><th>Fecha</th><th>Quién</th><th>Insumo</th><th>Cantidad</th><th>Costo unitario</th><th>Valor</th><th>Motivo</th></tr>
+      </thead>
+      <tbody>
+        <% @recent.each do |m| %>
+          <tr>
+            <td><%= m.created_at.strftime("%d/%m %H:%M") %></td>
+            <td><%= m.user&.name %></td>
+            <td><%= m.ingredient.name %></td>
+            <td><%= m.amount.to_f.round(3) %> <%= m.ingredient.unit %></td>
+            <td>$<%= format("%.4f", m.ingredient.effective_unit_cost) %> / <%= m.ingredient.unit %></td>
+            <td><%= m.cost.zero? ? "sin costo" : "$#{format("%.2f", m.cost)}" %></td>
+            <td><%= m.reason.presence || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="pruebas-empty">Sin mermas de insumos en los últimos 30 días.</p>
+  <% end %>
+</section>
