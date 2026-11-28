@@ -1,0 +1,31 @@
+    <details class="merma-registrar" <%= "open" unless admin? %>>
+      <summary>Registrar merma de un insumo</summary>
+    <section class="pruebas-intro">
+      <h2>Registrar merma</h2>
+      <p>Si un insumo se echó a perder, se tiró, o se rompió, regístralo acá. Se descuenta del stock y queda guardado como merma (no cuenta como venta ni como corte).</p>
+    </section>
+
+    <% @ingredients.each do |cat, items| %>
+      <section class="pruebas-section">
+        <h3><%= cat %></h3>
+        <div class="pruebas-grid">
+          <% items.each do |ing| %>
+            <div class="pruebas-card">
+              <div class="pruebas-card-name"><%= ing.name %></div>
+              <div class="pruebas-card-price">
+                Stock: <%= ing.stock.to_f.round(2) %> <%= ing.unit %>
+                <% if ing.below_min? %> · <span style="color: var(--danger-text);">⚠ bajo mínimo</span><% end %>
+              </div>
+              <div class="pruebas-card-actions">
+                <button type="button" class="pruebas-btn pruebas-btn--courtesy"
+                        onclick="document.getElementById('merma-dialog-<%= ing.id %>').showModal()">
+                  Merma
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    </details>
